@@ -1,0 +1,252 @@
+---
+title: "Running the loop"
+description: "Every command, in order, from an empty idea to merged code. Plus what the sandbox is actually doing, so that when something breaks you can tell which piece broke."
+icon: "wrench"
+---
+
+## Why any of this is worth it
+
+You are one person. The loop's whole purpose is to let you think about product A while a machine writes product B.
+
+<Frame caption="The two lanes never wait for each other. That is the entire value: your thinking time and the machine's building time stop being the same hours.">
+<img src="/images/running-the-loop-1.svg" />
+</Frame>
+
+## The seven steps
+
+Steps 1 and 2 happen once per product. Steps 3 to 7 repeat forever.
+
+<Frame caption="Steps 4 through 7 are the loop you live in. Each pass is one feature, or one batch of bug fixes.">
+<img src="/images/running-the-loop-2.svg" />
+</Frame>
+
+### Start the project
+
+Type `/new-project`. It asks two things: what you call it, and which shape it is (native app, web app, API, marketing site). Everything else it works out by interviewing you.
+
+It creates the GitHub repo from the right starter, creates the Linear project, adds it to EaglePoint, then interviews you for an hour or two about concept, research, architecture and data model.
+
+#### Answer honestly, including "I don't know"
+
+The interview is the product of this step, not the folders. Saying "I have not decided" is a real answer and it will work the question differently. Guessing to seem decisive is how you get a spec that describes a product you did not want.
+
+It stops after the architecture questions and asks whether to keep going. Take the break if offered. Long sessions get less sharp, and this one checks rather than pushing through.
+
+### Design the screens
+
+Playbook phases 4 to 7: information architecture, design system, every screen in both light and dark, motion. Done in Paper, not here.
+
+**An API skips this entirely.** There are no screens, so go straight from step 1 to step 4.
+
+### Pass the gate
+
+The build-ready gate is ten checks. But the thing it produces is not a tick list, it is your first spec.
+
+Open a session, re-grill briefly against the design documents, then run `/to-spec` in that same window. It publishes a parent issue to Linear.
+
+#### Do not run `/to-spec` cold
+
+It turns a conversation into a spec. Point it at a folder with no conversation behind it and you get a document that reads fine and skips the thinking the step exists for.
+
+### Grill one feature
+
+```bash
+/grill-with-docs
+```
+
+It interviews you in rounds. Each round is a batch of questions with a recommended answer attached to each, so you can often just say "yes to all, except 3".
+
+As terms get settled it writes them into `CONTEXT.md`. As decisions get made it writes ADRs into `docs/adr/`. You do not have to ask it to.
+
+If a question needs to be seen rather than argued, break out: `/handoff`, then `/prototype` in a fresh session, then `/handoff` back.
+
+### Turn it into tickets
+
+```bash
+/to-spec        # the conversation becomes a spec
+/to-tickets     # the spec becomes 4 to 6 tickets in Linear
+```
+
+#### Keep steps 4 and 5 in one window
+
+Do not clear or compact between grilling, spec and tickets. All three have to build on the same thinking. After `/to-tickets` you can clear freely, because each ticket is written to stand alone.
+
+Each ticket is a **vertical slice**: a thin path through every layer, not a layer at a time. It gets acceptance criteria, and it declares which other tickets block it.
+
+### Let the agent build
+
+```bash
+cd <your repo>
+npm run afk                 # one ticket. watch it.
+git log -p afk/<branch>     # read what it did
+npm run afk -- --max 5      # only once you trust it
+```
+
+It takes one ticket labelled `ready-for-agent` whose blockers are all done, writes the failing test first, makes it pass, reviews its own diff, runs your tests, commits, and moves the ticket to **In Review**.
+
+It never moves anything to Done. You decide done.
+
+### QA it yourself
+
+```bash
+/qa-plan
+```
+
+It turns the run's commits into a numbered walkthrough and puts it in Linear. Then you actually run the thing and follow the steps.
+
+File each finding **while you are still looking at it**. One issue per finding, labelled `needs-triage`. An hour later you will remember the symptom but not the state you were in.
+
+Close the QA plan when you finish walking it, even with findings still open. A stale plan left in the backlog reads to the next agent as the source of truth.
+
+#### This is where the real bugs are
+
+Grilling produces agreement. Tickets produce code. Review reads a diff. None of them run the thing. The bug where a folder got created but the git init failed, so disk and database now disagree, only appears when a human clicks.
+
+## What the sandbox actually is
+
+You need this section only when something goes wrong. But when something does go wrong, knowing which of the five pieces broke is the whole game.
+
+### Docker, in plain terms
+
+Docker runs a tiny, separate computer on your Mac. It has its own filesystem, its own users, and it cannot see your files unless you explicitly hand them over.
+
+Two words you need:
+
+#### Image
+
+A frozen template. Yours is called `sandcastle:node22` and contains Linux, Node, git, the GitHub CLI, and the Claude command. You built it once with `toolkit-image`.
+
+Think of it as an installed operating system, saved to disk, never running.
+
+#### Container
+
+A running copy of an image. Started fresh for each AFK run, thrown away at the end. Anything written inside it disappears unless it was written to the folder shared with your Mac.
+
+Think of it as booting that saved OS, using it, then deleting it.
+
+<Frame caption="One folder crosses the boundary, and it is a throwaway checkout rather than your real repo. That is the whole security model: the agent edits code, and cannot reach anything else you own.">
+<img src="/images/running-the-loop-3.svg" />
+</Frame>
+
+### The five pieces
+
+When a run misbehaves, it is one of these. Knowing which saves you an hour.
+
+| Piece | What it is | Where it lives |
+|----|----|----|
+| Docker | Runs the container. If it is not running, nothing else happens. | Docker Desktop |
+| The image | The frozen template with your tools in it. Built once per machine. | sandcastle:node22 |
+| sandcastle | The orchestrator. Makes the worktree, starts the container, runs the agent, collects the commits, cleans up. | .sandcastle/main.mts |
+| The prompt | What the agent is told at the start of every iteration. | .sandcastle/prompt.md |
+| linear | How the agent reads and updates the backlog. Travels inside the worktree. | .sandcastle/bin/linear |
+
+### What one iteration does, in order
+
+Every step below happens on every iteration. When a run stops early, it stopped at one of these.
+
+<Frame caption="Steps 4 and 5 are the two that talk to the outside world, so they are where almost every failure lands.">
+<img src="/images/running-the-loop-4.svg" />
+</Frame>
+
+## Telling good from bad
+
+#### A healthy run looks like this
+
+The backlog prints at the top with real ticket numbers. The agent names one ticket and moves it to In Progress in Linear. You see **real test output scroll past**, not a summary of it. One commit appears. The ticket lands in In Review with a comment. Total: several minutes to half an hour.
+
+#### The one failure that looks like success
+
+If the image is missing something your tests need, the agent cannot run them, has no way to know that, and will tell you the tests passed. It then commits and closes the ticket.
+
+**On the first run in any repo, watch for actual test output.** Not the agent's summary. If you never see your test runner's own words scroll past, stop the run.
+
+| What you see | What it means | Fix |
+|----|----|----|
+| Usage screen about socket files and `buffertools` | You ran `npx sandcastle`, which fetched an unrelated package with the same name off the internet. | use toolkit-image, or npm run afk |
+| `Cannot connect to the Docker daemon` | Docker Desktop is not running. | open -a Docker |
+| `image sandcastle:node22 not found` | Never built on this machine. Images do not sync between your two Macs. | toolkit-image |
+| Backlog prints as empty, but Linear has tickets | Either no ticket is labelled `ready-for-agent`, or all of them are blocked by tickets that are not Done yet. | linear ready --project "X" |
+| `Linear rejected the API key` | The key is missing from `.sandcastle/.env`, or lost a character when pasted. | cp ~/.config/toolkit/afk.env .sandcastle/.env |
+| Agent exits immediately, no error | Almost always the Claude token. Authentication failure looks like a silent exit rather than a message. | claude setup-token, then re-run setup-machine.sh |
+| Run dies after ~15 quiet minutes | The idle timeout. A slow test suite that prints nothing is indistinguishable from a hung agent. | raise idleTimeoutSeconds, or make tests verbose |
+| Files appear owned by someone else; git complains | The image was built with the wrong user id. | toolkit-image --check |
+| Ticket went back to Todo with `needs-info` | **Working correctly.** The agent found the ticket ambiguous and stopped rather than guessing. | read its comment, sharpen the ticket |
+| Agent finished but the run hangs a minute | **Harmless.** A leftover process is holding the output open. It force-finishes after 60 seconds. | ignore unless it happens every run |
+| Nothing was pushed to GitHub | **Correct.** The agent is forbidden from pushing. Commits sit on a local branch for you to read. | `git log -p afk/<branch>` |
+
+### Checking things by hand
+
+```
+docker info                        # is Docker awake
+toolkit-image --check              # does the image exist, right user id
+linear ready --project "MyApi"     # does the backlog work from your Mac
+toolkit-link --check               # are this repo's skills linked
+
+Use `sh -c`, not `sh -lc`. A login shell resets the PATH and will tell you tools are missing when they are not.
+
+## Every command
+
+#### Once per machine
+
+```
+./setup-machine.sh
+./install.sh
+toolkit-image
+```
+
+Tokens and PATH, core skills, the sandbox image. Do all three again on your other Mac.
+
+#### Once per repo
+
+```
+toolkit-link
+cp ~/.config/toolkit/afk.env \
+   .sandcastle/.env
+```
+
+Project skills, then the tokens the container needs. Also once per new worktree for the first one.
+
+#### Every feature
+
+```
+/grill-with-docs
+/to-spec
+/to-tickets
+npm run afk
+/qa-plan
+```
+
+The loop. Keep the first three in one window.
+
+#### Backlog by hand
+
+```
+linear ready --project "X"
+linear show JFL-64
+linear start JFL-64
+linear review JFL-64 -c "..."
+```
+
+There is no `done` verb, deliberately.
+
+#### When stuck
+
+```
+/ask-matt
+/diagnosing-bugs
+/wait-what
+```
+
+Which skill fits, a hard bug, or "say that again in plain English".
+
+#### Housekeeping
+
+```
+cd ~/DevProj/toolkit
+git pull && ./install.sh
+/retro
+```
+
+Update the toolkit. `/retro` improves the setup based on a session that went badly.
+
+Written 26 August 2026, against toolkit at 7 commits and sandcastle 0.12.0. Every command here was run on this machine except the mutating `linear` verbs and a complete AFK iteration, neither of which had a safe target yet. Treat those two as untested rather than proven.

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 260" role="img" aria-label="A timeline showing you grilling product A in the morning while an agent builds product B, then swapping in the afternoon"><style>svg{color:#1D1D1B}@media (prefers-color-scheme:dark){svg{color:#E8E8E6}}</style>
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <text x="0" y="16" font-size="12" font-family="monospace" fill="currentColor" opacity=".55">9am</text>
+      <text x="300" y="16" font-size="12" font-family="monospace" fill="currentColor" opacity=".55">12pm</text>
+      <text x="600" y="16" font-size="12" font-family="monospace" fill="currentColor" opacity=".55">3pm</text>
+      <text x="845" y="16" font-size="12" font-family="monospace" fill="currentColor" opacity=".55">6pm</text>
+      <line x1="0" y1="26" x2="880" y2="26" stroke="currentColor" opacity=".2"/>
+
+      <text x="0" y="60" font-size="13" font-weight="600" fill="currentColor">You</text>
+      <rect x="0" y="70" width="290" height="44" rx="3" fill="currentColor" opacity=".1"/>
+      <rect x="0" y="70" width="290" height="44" rx="3" fill="none" stroke="currentColor" opacity=".45"/>
+      <text x="14" y="90" font-size="12" fill="currentColor">Grill product A</text>
+      <text x="14" y="106" font-size="11" fill="currentColor" opacity=".6">decide, spec, ticket</text>
+
+      <rect x="310" y="70" width="230" height="44" rx="3" fill="currentColor" opacity=".1"/>
+      <rect x="310" y="70" width="230" height="44" rx="3" fill="none" stroke="currentColor" opacity=".45"/>
+      <text x="324" y="90" font-size="12" fill="currentColor">QA product B</text>
+      <text x="324" y="106" font-size="11" fill="currentColor" opacity=".6">click it, file findings</text>
+
+      <rect x="560" y="70" width="320" height="44" rx="3" fill="currentColor" opacity=".1"/>
+      <rect x="560" y="70" width="320" height="44" rx="3" fill="none" stroke="currentColor" opacity=".45"/>
+      <text x="574" y="90" font-size="12" fill="currentColor">Grill product C</text>
+      <text x="574" y="106" font-size="11" fill="currentColor" opacity=".6">the next thing</text>
+
+      <text x="0" y="160" font-size="13" font-weight="600" fill="#1E6473">Agent</text>
+      <rect x="0" y="170" width="540" height="44" rx="3" fill="#1E6473" opacity=".13"/>
+      <rect x="0" y="170" width="540" height="44" rx="3" fill="none" stroke="#1E6473" opacity=".7"/>
+      <text x="14" y="190" font-size="12" fill="#1E6473">Building product B's backlog</text>
+      <text x="14" y="206" font-size="11" fill="#1E6473" opacity=".75">one ticket per iteration, tests green, commits</text>
+
+      <rect x="560" y="170" width="320" height="44" rx="3" fill="#1E6473" opacity=".13"/>
+      <rect x="560" y="170" width="320" height="44" rx="3" fill="none" stroke="#1E6473" opacity=".7"/>
+      <text x="574" y="190" font-size="12" fill="#1E6473">Fixing what your QA found</text>
+
+      <path d="M300 92 L300 240 L470 240 L470 192" fill="none" stroke="currentColor" opacity=".5" marker-end="url(#ar)"/>
+      <text x="306" y="236" font-size="11" fill="currentColor" opacity=".7">your tickets feed the agent</text>
+      <path d="M420 214 L420 230 L340 230 L340 118" fill="none" stroke="#1E6473" opacity=".6" marker-end="url(#ar)"/>
+      <text x="345" y="134" font-size="11" fill="#1E6473" opacity=".85">its commits feed your QA</text>
+    </svg>

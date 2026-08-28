@@ -1,0 +1,434 @@
+---
+title: "The build track"
+description: "One route from a loose idea to a shipped product, run by one person with agents on the night shift. Four product types branch off it."
+icon: "map"
+---
+
+## The four systems
+
+Everything below is either a system that owns a fact, a skill you type, or a decision you only have to make once.
+
+#### EaglePoint
+
+Which product gets Tuesday. It is the only system that can see Refrain competing against a client deadline and a residency renewal.
+
+#### Linear
+
+Specs, tickets, blocking edges, triage labels, QA findings, phase position. The backlog the AFK runner drains.
+
+#### The repo
+
+`CLAUDE.md`, `CONTEXT.md`, `docs/adr/`, the design docs. Everything an agent reads to build.
+
+#### The toolkit
+
+Skills, the Playbook, the `linear` CLI, the sandbox image. Cloned once per machine, updated with `git pull`. **Live.**
+
+#### One rule settles every boundary question
+
+EaglePoint schedules the shift. Linear holds the shift's work. The moment a ticket appears in EaglePoint you have double entry, and within a week one of the two is lying.
+
+## Ideation to launch, once per product
+
+Six stops. Two of them are gates, where a human decides and nothing proceeds without them. The last two repeat forever.
+
+### Stop 1 · /new-project
+
+*decisions, not deliverables*
+
+Creates the repo from the starter template, creates the Linear project, then runs one grilling session covering Playbook phases 0 to 3: concept, research, architecture, data model. You answer two questions up front, the name and the platform. Everything else the interview produces.
+
+Phase 1 is the only phase whose answers come from outside your head, so `/research` fires as a background agent the moment ICP and competitor questions surface. The interview keeps going while it reads.
+
+`docs/brief.md` `docs/research.md` `docs/adr/0001…` `docs/data-model.md` `CONTEXT.md` `docs/product-spec.md`
+
+#### Checkpoint after phase 2
+
+Phases 0 to 3 on a real product run 80k to 120k tokens. That is inside the smart zone but not comfortably. The skill writes what it has after architecture and tells you whether to continue or clear and resume from the artefacts. Cheaper than finding the degradation in the data model.
+
+### Stop 2 · The design track
+
+*playbook phases 4 to 7*
+
+IA and flows, design system, every screen in both themes, motion spec. Run as Playbook prompts, not as grilling: the output is an artefact, not an argument. This is the stop that varies most between product types, and for one of the four it disappears entirely.
+
+`screen manifest` `component manifest` `tokens, light and dark` `export/`
+
+### Stop 3 · The build-ready gate
+
+*gate, human decides*
+
+Ten checks, all green or you are not ready. But the gate's output is not a green checklist, it is a published spec. Re-grill briefly against the design artefacts, then run `/to-spec` in that same window. Calling `/to-spec` cold on a folder produces a document and skips the thing the step exists for.
+
+re-grill → /to-spec → parent issue in Linear
+
+### Stop 4 · The feature loop
+
+*repeats forever*
+
+Every feature, and every one of the old Playbook phases 9 to 15, enters here. Foundations, auth, push, testing and launch stop being phases in a separate tracker and become Linear issues seeded from the Playbook's checklists. One queue.
+
+```
+/grill-with-docs → [/prototype via /handoff] → /to-spec → /to-tickets → build each ticket
+└────────── one unbroken context window ──────────┘   └── fresh context per ticket ──┘
+```
+
+Do not clear or compact until after `/to-tickets`. The grilling, the spec and the tickets have to build on the same thinking. Each build then starts fresh, working only from its ticket, which is self-contained by design.
+
+### Stop 5 · AFK
+
+*night shift*
+
+The runner takes one eligible ticket per iteration: labelled `ready-for-agent`, in `Todo`, every blocker `Done`. It builds test-first, reviews its own diff, runs the repo's checks, commits to a named branch and moves the issue to `In Review`. Never to `Done`. A human decides done.
+
+This is the half that makes the whole thing worth it for one person. You grill product A while the runner drains product B.
+
+### Stop 6 · QA
+
+*gate, human decides*
+
+`/qa-plan` takes the run's commits and writes a numbered walkthrough as a Linear issue. You walk it. Each finding files its own issue labelled `needs-triage`. Triage sends the agent-safe ones back to `ready-for-agent` and the runner picks them up on the next pass.
+
+#### This is where the real bugs are
+
+A thorough grilling session still ships edge cases that only surface when you click through the thing. Directory created, git init failed, database and filesystem now disagree. No amount of spec work finds that. Skipping QA is how a spec-to-code pipeline quietly produces confident wrong software.
+
+## Four product types, one route
+
+The route above does not change. What changes is how much design track there is, what command goes red, and whether an agent can be trusted alone with it.
+
+|   | Marketing site | SaaS web app | API or service | Native app |
+|----|----|----|----|----|
+| Track | Light track, four stages | Playbook, all phases | Playbook, phases 4 to 7 drop | Playbook, all phases |
+| Design track | Heaviest. The design is the product | Full. Screens, states, both themes | None. There are no screens | Full, plus HIG and motion spec |
+| Fidelity gate | **Yes** | **Yes** | N/A | **Yes, strictest** |
+| Feedback loop | `build` + Playwright on forms | `vitest` + Playwright e2e | Contract tests, schema validation | `xcodebuild test` on a simulator |
+| Test seams | Few. Mostly visual | Repository, API handler, e2e | The endpoint. One seam, ideal | Domain engine, repository, view model |
+| Ticket shape | One page or section, both breakpoints | Slice through schema, API and UI | One endpoint plus its contract test | One screen (static) or one behaviour (wired) |
+| AFK sandbox | **Docker** | **Docker + network** | **Docker** | **Not Docker** |
+| AFK suitability | **Low. Judged by eye** | **High on logic, low on UI** | **Highest of the four** | **Core only** |
+| QA shape | Device walkthrough + Lighthouse | Browser walkthrough per flow | Consumer-side smoke test | On-device walkthrough |
+
+### Path A · Marketing site
+
+Client sites and landing pages. There is no data model worth the name, which is the Light track's own test for itself: would Phase 3 have anything in it?
+
+The whole product is the design track, so the route compresses hard. Grilling covers positioning and audience rather than architecture, and the gate is really just the fidelity gate arriving early.
+
+**Skip** — Phases 2, 3, 10, 12
+
+**Lean on** — `copywriting`, `typography-expert`, `ui-design-system`
+
+**AFK** — Safe technically, low value. An agent cannot tell you the hero reads wrong
+
+### Path B · SaaS web app
+
+The full route, no phases dropped, and the type the Playbook was written for. Vite, React, Zustand, Tailwind, shadcn, with Supabase or a Node backend behind it.
+
+Split AFK by layer rather than by ticket. Schema, repository, API handlers and domain logic go to the runner. Anything that renders waits for the fidelity gate.
+
+**Watch** — The database. Container needs `network` set, and a seeded test DB
+
+**Lean on** — `senior-backend`, `senior-data-engineer`, `security-review`
+
+**AFK** — Docker, with the DB outside the container on a shared network
+
+### Path C · API or automation service
+
+The Google Ads automation, webhooks, scheduled jobs, anything with no user interface. Phases 4 to 7 do not apply, so the route runs brief to architecture to data model straight into the build loop.
+
+This is the best AFK candidate you have. One seam, deterministic assertions, no visual judgement anywhere in the loop. The contract test *is* the acceptance criterion, so a ticket is genuinely done when it is green.
+
+**Gate** — Becomes a contract review rather than a design review
+
+**Lean on** — `api-integration-specialist`, `api-security-best-practices`
+
+**AFK** — Docker, no caveats. Start here when proving the loop out
+
+### Path D · Native app
+
+Swift and SwiftUI on iOS, or React Native and Flutter cross-platform. The strictest fidelity gate of the four, because a design regression on a phone is invisible in a diff.
+
+The build splits in two and the split is not negotiable. Stage A reproduces the design with zero functionality and gets approved. Stage B wires behaviour without touching approved markup.
+
+**Constraint** — Xcode does not run on Linux. No image changes this
+
+**Lean on** — `mobile-design`, `ui-ux-pro-max`
+
+**AFK** — See the sandbox section. The answer is not one thing
+
+## Which sandbox, and why it depends on the toolchain
+
+The runner works today with no sandbox at all, meaning the agent runs as you with your permissions. That is fine while you watch it and stops being fine the moment you walk away, which is the entire point of AFK.
+
+| Option | Isolation | Works for | Cost | Verdict |
+|----|----|----|----|----|
+| Docker | Real. Linux container, one worktree mounted, nothing else of yours | Node, Python, Go, Rust, static sites, anything that builds on Linux | Built. `sandcastle:node22` | **Ready** |
+| Extract the core | Inherits Docker's, for the part that moves | Any project whose testable logic is platform-independent | One ticket, and it improves the codebase | **Do first** |
+| macOS user account | Real. Separate home, separate keychain, no access to yours | iOS and macOS app targets, simulator tests | An afternoon. Simulators are per-user | **Practical** |
+| Tart VM | Strongest. Disposable macOS guest per run | Anything Apple, including signed device builds | A weekend, plus 60 GB per image | **Later** |
+| CI macOS runner | Strong. Ephemeral, nothing on your machine | Anything Apple, on a schedule | Ten times Linux minutes, six hour job cap | **Situational** |
+| No sandbox | None. Agent runs as you | Everything, unfortunately | Zero | **Watched runs only** |
+
+### Extract the core is the general move, not a Swift trick
+
+The work you can safely hand to an unattended agent is almost exactly the work that does not need the platform toolchain. Domain logic, entitlement state, pricing rules, scheduling, conflict resolution. In every product type, that layer is or should be free of the framework around it.
+
+Refrain proves the point rather than being an exception to it. `app/Refrain/Sources/Domain/` holds the resurface engine and the domain constants, and between them they import Foundation and nothing else. That compiles and tests on Linux today. Six of its twelve test files import SwiftUI or UIKit and none of them belong in that package.
+
+So the split falls along a line that already exists. Pull the core into its own package, point Docker at it, and the half of the work worth automating becomes automatable. The other half was always going to need your eyes.
+
+#### The failure this prevents is worse than no automation
+
+An agent whose test command silently cannot run will report the tests as passing, because it has no way to know otherwise. It then commits and closes the ticket. On the first watched run, look for real test output in the log rather than the agent's summary of it. That single check catches most of what goes wrong with a new image.
+
+### Where Linear meets the container
+
+Inside a container the agent inherits none of your MCP config, and the Linear server authenticates over OAuth in a browser a container does not have. Move Linear to the host: the runner picks the eligible issue, injects it into the prompt, and updates the issue afterwards. The container implements and never sees a credential.
+
+Selection becomes deterministic instead of something the agent might get wrong, the prompt loses a third of its length, and the run survives Linear being down mid-iteration.
+
+## Every skill, and when to reach for it
+
+Most of the main flow is user-invocable only. An agent asking for `/to-spec` or `/grill-with-docs` is refused, deliberately: alignment is human-in-the-loop, and an agent that can start its own planning will.
+
+### The main flow
+
+/new-project
+
+*Rebuild pending.* Scaffolds the repo and Linear project, then grills phases 0 to 3 into a product spec.
+
+/grill-with-docs
+
+The interview, stateful. Writes `CONTEXT.md` and ADRs as terms and decisions resolve. Use whenever there is a repo under you.
+
+/grill-me
+
+The same interview, stateless. For when there is no working directory: a plan, a piece of writing, a decision with no code.
+
+/grilling
+
+The primitive underneath both. Works a design tree in rounds, asking the whole frontier at once with a recommended answer attached to each question.
+
+/prototype
+
+Throwaway code that answers one design question you cannot settle on paper. Kept as a primary source on a `prototype/` branch, pointed at from the issue.
+
+/to-spec
+
+Turns the thread into a spec and publishes it. No interview, just synthesis. Agrees the test seams with you before writing.
+
+/to-tickets
+
+Splits the spec into tracer-bullet slices with real blocking edges. Handles wide refactors as expand, migrate, contract instead of forcing them into a slice.
+
+/implement
+
+Builds a ticket, driving `/tdd` internally, then closes out with `/code-review` before committing.
+
+/tdd
+
+Red, green, refactor, at the seams already agreed. Reach for it alone when you want one concrete behaviour built test-first.
+
+/code-review
+
+Two axes in parallel: does it follow the repo's standards, and does it match what the issue asked for. Run in a fresh context, because implementation burns the smart zone.
+
+/qa-plan
+
+*To build.* Turns a run's commits into a numbered walkthrough as an issue. Findings become issues. Closes the loop.
+
+### On-ramps
+
+/triage
+
+For issues you did not write. Moves them through a state machine and produces agent-ready briefs. Never triage tickets `/to-tickets` made.
+
+/diagnosing-bugs
+
+The hard ones: the intermittent flake, the regression between two known-good states. Refuses to theorise until one command goes red on this bug.
+
+/wayfinder
+
+For an effort too foggy to hold in one session. Charts decision tickets and resolves them one at a time, then hands off at `/to-spec`. Never for a well-scoped feature.
+
+### Design track
+
+think-tank
+
+Interrogates a concept brief. Largely superseded by grilling at phase 0, which produces alignment rather than a plan.
+
+market-research-reports
+
+Structured viability report. Phase 1, alongside `/research` running in the background.
+
+competitive-ads-extractor
+
+Mines competitor messaging and positioning. Phase 1, and useful again at launch copy.
+
+ux-researcher-designer
+
+IA, flows, states inventory. Phase 4, where the reusable-element inventory is first recognised.
+
+ui-ux-pro-max
+
+Design system and screen design in Paper. Phases 5 and 6.
+
+ui-design-system
+
+Token generation, component documentation, developer handoff. Phase 5.
+
+typography-expert
+
+Type scale and font pairing. Phase 5, and the first thing to reach for on a marketing site.
+
+mobile-design
+
+Touch targets, platform conventions, performance patterns. The native path only.
+
+drawio-skill
+
+ERD, nav map, user flows, system architecture. Phases 2 to 4.
+
+copywriting
+
+Page copy for anything with a marketing surface. Path A's main tool.
+
+### Engineering reference
+
+senior-architect
+
+Stack decisions, topology, trade-offs. Phase 2, feeding the ADRs the grilling writes.
+
+software-architecture
+
+Pattern and system-design review. Pairs with the above rather than replacing it.
+
+senior-data-engineer
+
+ERD, schema, indexing, sync strategy. Phase 3.
+
+senior-backend
+
+API, backend, auth implementation. Phases 3, 10 and 11.
+
+senior-security
+
+OWASP pass, auth and secrets audit. Phase 10, and again before submission.
+
+codebase-design
+
+The deep-module vocabulary: module, interface, depth, seam, adapter. Reach for it when the shape is the problem.
+
+domain-modeling
+
+The active discipline that keeps `CONTEXT.md` a clean glossary. Challenges fuzzy terms, records hard-to-reverse decisions as ADRs.
+
+improve-codebase-architecture
+
+A survey for spare moments. Surfaces deepening opportunities; picking one generates an idea for the main flow.
+
+### Standalone
+
+/research
+
+Delegates reading to a background agent, which leaves a cited markdown file. Keep working while it reads.
+
+/handoff
+
+A portable file, for a new harness, a new directory, a colleague, or forking a side task mid-phase. Narrow by design.
+
+/wizard
+
+For steps only a human can take: credentials, CI secrets, an unfamiliar dashboard. Generates the script instead of re-explaining the procedure.
+
+/to-questionnaire
+
+When what blocks you is in someone else's head. The inverse of grilling.
+
+/wait-what
+
+Mid-conversation corrective when a message did not land. Re-pitches in plain English using the project's vocabulary.
+
+/retro
+
+Improves the agent's environment rather than the code. Navigation, automated checks, standards, tool economy.
+
+/ask-matt
+
+The router, for when you cannot remember which of these fits.
+
+unslop
+
+Applies to anything long before it is committed. The house style is not a preference, it is what keeps documents trusted.
+
+## Two repos, split by whether divergence is a bug
+
+A template repo alone works for a week and then rots, because you improve the template and eleven existing projects never hear about it. Sorting files by whether they are supposed to change tells you which repo each one goes in.
+
+Cloned once per machine, pulled
+
+### toolkit
+
+Everything that must stay identical everywhere. Installed, never copied. 88 skills, 7 commits.
+
+- The Playbook, the light track, the feature loop
+- Every skill, replacing the 43 that sat unversioned in `~/DevProj/skills`
+- `bin/linear`, `bin/toolkit-link`, `bin/toolkit-image`
+- The sandbox image, prompt and runner config
+- `setup-machine.sh`, the per-machine wizard
+
+This killed the per-machine copy dance into `~/.claude/skills` and the `diff -r` that existed to detect the drift the copying caused.
+
+### starter-web · starter-ios
+
+The per-project skeleton. These files are meant to diverge, and every project editing them is correct.
+
+- `CLAUDE.md`, with sections marked delete-if-not-applicable
+- Empty `CONTEXT.md`, ADR template
+- `docs/agents/` with `{{LINEAR_PROJECT}}` as the one substitution
+- `.sandcastle/`: prompt, runner, the `linear` shim
+- `.claude/skillsets`, declaring which skills this repo wants
+
+Two starters, not one with a flag. `starter-ios` ships no runner config and a README saying why, so the absence reads as a decision rather than an oversight.
+
+#### Only the core skills are global
+
+All 88 skill descriptions cost 6,059 tokens in every session in every project, and 65 of them could self-trigger, so `nestjs-expert` was live in a SwiftUI repo. Core is now 32 skills at 1,317 tokens; a repo declares the rest in a committed `.claude/skillsets` and links them with `toolkit-link`. Eleven sets: web, api, data, ios, design, security, ops, marketing, onepct, personal.
+
+#### setup-matt-pocock-skills stops being a step
+
+It produces four files that are byte-identical across every repo except the Linear project name. It is a precondition in the original flow because that answer genuinely varies, shipping GitHub, GitLab and local variants. Yours is Linear, forever. So it becomes template content with one placeholder, and the skill survives only for adopting a repo that already exists.
+
+As of 26 August 2026
+
+## What is real, and what is still a claim
+
+Everything below was built in one session. The difference between the two lists is whether it has actually run.
+
+| Piece | State | Evidence |
+|----|----|----|
+| toolkit repo | **Live** | 7 commits, 88 skills, pushed private |
+| starter-web · starter-ios | **Live** | GitHub templates. Clone tested end to end |
+| Skill scoping | **Live** | 6,059 → 1,317 tokens per session |
+| `linear` CLI | **Verified** | 21 eligible of 31, 10 correctly held by blockers |
+| Sandbox image | **Built** | `sandcastle:node22`, uid matches host |
+| Linear from inside the container | **Verified** | backlog read through the shim, no MCP |
+| Tokens and PATH | **Done** | one file, mode 600, both machines pending |
+| `/qa-plan` | **Written** | never run. It is a skill, not yet a habit |
+| `/new-project` | **Written** | never run against a real product |
+| A full AFK iteration | **Unproven** | every link tested, the chain never run |
+| `linear start` · `review` · `block` | **Untested** | targets confirmed to exist, never written to |
+| Vault retirement | **Not started** | inboxes, Home.md, Decisions.md still live |
+
+### What to do first
+
+Start the API project. It is the best AFK candidate you own: one seam, deterministic assertions, no visual judgement anywhere in the loop. Proving the chain there costs nothing if it goes wrong, and it answers the three warnings above in a single sitting.
+
+#### Then retire the second copies
+
+Two runners now exist: `afk-runner/afk.mjs` on the host, and `toolkit/sandcastle/main.mts` in a container. The second supersedes the first. And the vault still holds a portfolio dashboard, a decision record and a message bus that Linear and EaglePoint already provide.
+
+Both are the same failure this whole system exists to prevent: one fact, two homes, and within a week one of them is lying.
+
+Assembled from the Playbook, the feature loop, the AFK runner and the repo configs as they stood on 26 August 2026. Anything here describing tooling is a claim to re-check, not a guarantee: the runner's flags have already changed once and three documents still carry the old answer.

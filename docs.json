@@ -3,7 +3,11 @@
   "theme": "mint",
   "name": "The build workflow",
   "description": "How the AFK build workflow works, how to run it, and what to do when it breaks.",
-  "colors": { "primary": "#E9521E", "light": "#FF7A4D", "dark": "#1D1D1B" },
+  "colors": {
+    "primary": "#E9521E",
+    "light": "#FF7A4D",
+    "dark": "#1D1D1B"
+  },
   "favicon": "/favicon.svg",
   "navigation": {
     "tabs": [
@@ -12,11 +16,25 @@
         "groups": [
           {
             "group": "Start here",
-            "pages": ["index", "the-shape", "run-a-ticket"]
+            "pages": [
+              "index",
+              "the-shape",
+              "run-a-ticket"
+            ]
           },
           {
             "group": "Setting up",
-            "pages": ["setup/machine", "setup/a-repo"]
+            "pages": [
+              "setup/machine",
+              "setup/a-repo"
+            ]
+          },
+          {
+            "group": "In depth",
+            "pages": [
+              "reference/running-the-loop",
+              "reference/build-track"
+            ]
           }
         ]
       },
@@ -25,7 +43,13 @@
         "groups": [
           {
             "group": "Troubleshooting",
-            "pages": ["fixes/index", "fixes/the-run-wont-start", "fixes/the-agent-did-nothing", "fixes/the-handoff-failed", "fixes/drift"]
+            "pages": [
+              "fixes/index",
+              "fixes/the-run-wont-start",
+              "fixes/the-agent-did-nothing",
+              "fixes/the-handoff-failed",
+              "fixes/drift"
+            ]
           }
         ]
       },
@@ -34,13 +58,18 @@
         "groups": [
           {
             "group": "History",
-            "pages": ["history/changelog", "history/versions"]
+            "pages": [
+              "history/changelog",
+              "history/versions"
+            ]
           }
         ]
       }
     ]
   },
   "footer": {
-    "socials": { "github": "https://github.com/jamalfernandes" }
+    "socials": {
+      "github": "https://github.com/jamalfernandes"
+    }
   }
 }
