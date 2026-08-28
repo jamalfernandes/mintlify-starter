@@ -56,6 +56,35 @@ your local copy. It has been the other way round at least once.
 
 ---
 
+## The synced copy was ahead, not behind
+
+**Seen:** you compare `~/DevProj/toolkit` against a fresh clone of the toolkit and
+they differ. The obvious reading is that the local copy is stale.
+
+**Actually wrong:** on 28 August it was the other way round. `~/DevProj/toolkit`
+held two fixes that GitHub did not — the ten-second wait before asserting In
+Review, and the prompt step order that reviews the diff before committing. They
+were written there, and because that directory is synced without its `.git` there
+was nothing to push from, so they stayed. Every repo scaffolded from GitHub since
+had been getting the older runner.
+
+The entry above says a file-synced copy goes stale. It can also be the only place
+a fix exists. Both are true, which is why the direction has to be checked rather
+than assumed.
+
+**Fix:** diff before copying, in whichever direction the diff turns out to point.
+
+```bash
+gh repo clone jamalfernandes/toolkit /tmp/tk -- --depth 1
+diff /tmp/tk/sandcastle/main.mts ~/DevProj/toolkit/sandcastle/main.mts
+```
+
+Then copy the newer file into the clone and push from there. Never push from
+`~/DevProj/toolkit`; it has no `.git` and the attempt is what starts the confusion.
+
+**How to tell:** that `diff` is empty. Run it before scaffolding a new repo, not
+after wondering why the runner behaved oddly.
+
 ## `install.sh --check` reports drift
 
 **Seen:**

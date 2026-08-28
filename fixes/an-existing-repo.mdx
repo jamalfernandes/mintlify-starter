@@ -1,0 +1,98 @@
+---
+title: "Putting an old repo on the workflow"
+description: "A repo with years of history behind it fails differently from a fresh starter. These four have each cost real time."
+icon: "box-archive"
+---
+
+A new project from `starter-web` starts clean. An existing repo does not, and the
+problems below are the ones that have actually turned up. None of them are worth
+changing the starter over, because a fresh repo never has them.
+
+## The local checkout is a long way behind
+
+**Seen:** the repo has one commit and a README. You conclude the project has not
+really started, and scaffold onto what is there.
+
+**Actually wrong:** `boostledger` on 28 August looked exactly like that. It was
+**150 commits behind `origin/main`**, sitting on the initial commit, while the
+real repo had a live API, a wallet UI and 128 tests. Scaffolding onto it would
+have produced a branch that deleted the entire product.
+
+**Fix:** before touching anything, fetch and compare.
+
+```bash
+git fetch origin
+git rev-list --left-right --count origin/main...HEAD   # left = behind, right = ahead
+git merge --ff-only origin/main
+```
+
+**How to tell:** the count reads `0	0`. Read the two numbers in the right order:
+left is behind, right is ahead, and getting that backwards produces a confident
+report of the opposite of the truth.
+
+## Lint has never run here
+
+**Seen:** you add `eslint .`, run it for the first time, and get double-digit
+errors in code that has been in production for weeks.
+
+**Actually wrong:** nothing new broke. Next 16 removed `next lint`, and a repo
+that still has `"lint": "next lint"` has been exiting 0 without linting anything.
+A repo with no lint script at all has simply never been checked.
+
+This matters more than it looks, because the AFK loop gates commits on the repo's
+own checks. Leave lint red and every future run sees a failure that is not its
+fault, then either tries to fix unrelated code or stops.
+
+**Fix:** sort the findings into four piles rather than fixing them all. From
+`boostledger`, which had nine:
+
+| Pile | What to do | Count |
+| --- | --- | --- |
+| A rule fighting a deliberate idiom | Turn the rule off, put the reason in the config | 7 |
+| Genuinely dead code | Delete it | 1 |
+| A real bug in live code | File it, suppress inline, point the comment at the ticket | 1 |
+| Anything you are unsure about | File it. Do not guess in a scaffolding commit | 0 |
+
+The third pile is the one people get wrong. A lint error in live checkout code is
+a real finding, and fixing it in passing buries a behaviour change inside a
+commit nobody will read for it.
+
+**How to tell:** `npm run lint` exits 0, and every suppression in the repo names a
+ticket.
+
+## The suite is green because most of it did not run
+
+**Seen:** `101 passed`. Looks like a healthy repo.
+
+**Actually wrong:** it was `101 passed | 27 skipped`, and the 27 were the ones
+guarding token movement. They skip on `Boolean(process.env.DATABASE_URL)`, so with
+no database they vanish quietly. The rules they check are written in plpgsql, so a
+migration change can break all of them while the suite still prints green.
+
+**Fix:** put the baseline in `CLAUDE.md` verbatim, including the skipped count, and
+say what the skipped ones cover and what an agent may not touch without a database.
+
+**How to tell:** the number in `CLAUDE.md` matches what `npm test` prints today. If
+it does not, one of them is lying and you do not yet know which.
+
+## The host said green and the container disagreed
+
+**Seen:** lint and tests pass on your Mac. The container run fails on typecheck.
+
+**Actually wrong:** in the `boostledger` scaffold this was simply not running all
+three checks. Removing a dead constant also removed a destructured name that was
+used 70 lines further down. `npm test` and `npm run lint` both passed; only
+`tsc --noEmit` caught it, and it had not been run since the edit.
+
+**Fix:** run the gate in a throwaway worktree, never the working copy, because a
+Linux `npm install` against a mounted macOS directory replaces native binaries and
+breaks the host checkout.
+
+```bash
+git worktree add -q --detach /tmp/gate HEAD
+docker run --rm -v /tmp/gate:/w -w /w --entrypoint sh sandcastle:node22 -c '
+  npm install --silent && npm run typecheck && npm test && npm run lint'
+git worktree remove --force /tmp/gate
+```
+
+**How to tell:** all three pass inside the container, not just on the host.

@@ -4,6 +4,29 @@ description: "What changed in the workflow itself, newest first."
 icon: "clock-rotate-left"
 ---
 
+## 28 August 2026, later
+
+### The ledger and wallet joined the workflow
+
+`boostledger` is the third repo on the loop, and the first with real history
+behind it rather than a starter. Linear project **Boost33 Ledger and Wallet**.
+Eslint existed nowhere in it; turning it on found nine errors, eight of which were
+rule choices or dead code and one of which became JFL-184.
+
+### The canonical runner caught up with the repos
+
+Two fixes had been living only in `~/DevProj/toolkit`, which syncs without its
+`.git` and so had nothing to push from: the ten-second wait before asserting In
+Review, and the prompt order that reviews the diff before committing rather than
+after. Both are in the toolkit now, so newly scaffolded repos get them.
+
+### Two more entries in the fix log
+
+A page on [putting an old repo on the workflow](/fixes/an-existing-repo), which
+fails differently from a fresh one, and a
+[drift entry](/fixes/drift) for the case where the file-synced copy is the one
+that is ahead.
+
 <Note>
 This starts on 28 August 2026, the day the workflow was first used on the Boost33
 repos. Anything before that is in the toolkit's git history.
