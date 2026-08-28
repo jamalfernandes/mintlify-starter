@@ -1,45 +1,52 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "The build workflow",
+  "name": "JF Labs Workflow",
   "description": "How the AFK build workflow works, how to run it, and what to do when it breaks.",
   "colors": {
-    "primary": "#E9521E",
-    "light": "#FF7A4D",
-    "dark": "#1D1D1B"
+    "primary": "#1E6473",
+    "light": "#6FB3C2",
+    "dark": "#164E5A"
   },
   "favicon": "/favicon.svg",
   "navigation": {
     "tabs": [
       {
         "tab": "Guide",
+        "icon": "book-open",
         "groups": [
           {
             "group": "Start here",
             "pages": [
               "index",
-              "the-shape",
-              "run-a-ticket"
+              "the-shape"
             ]
           },
           {
-            "group": "Setting up",
+            "group": "The route",
+            "pages": [
+              "reference/build-track"
+            ]
+          },
+          {
+            "group": "Set up",
             "pages": [
               "setup/machine",
               "setup/a-repo"
             ]
           },
           {
-            "group": "In depth",
+            "group": "Run it",
             "pages": [
-              "reference/running-the-loop",
-              "reference/build-track"
+              "run-a-ticket",
+              "reference/running-the-loop"
             ]
           }
         ]
       },
       {
         "tab": "When it breaks",
+        "icon": "triangle-exclamation",
         "groups": [
           {
             "group": "Troubleshooting",
@@ -55,6 +62,7 @@
       },
       {
         "tab": "History",
+        "icon": "clock-rotate-left",
         "groups": [
           {
             "group": "History",
