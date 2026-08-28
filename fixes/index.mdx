@@ -1,0 +1,58 @@
+---
+title: "When it breaks"
+description: "Every failure that has actually happened, what it looked like, and what fixed it."
+---
+
+## How to use this
+
+Find the symptom, not the cause. You will recognise what you saw on screen long
+before you know what went wrong.
+
+<CardGroup cols={2}>
+  <Card title="The run won't start" icon="circle-stop" href="/fixes/the-run-wont-start">
+    It exits before the agent says anything.
+  </Card>
+  <Card title="The agent did nothing" icon="circle-minus" href="/fixes/the-agent-did-nothing">
+    It ran, finished, and produced no commits.
+  </Card>
+  <Card title="The handoff failed" icon="link-slash" href="/fixes/the-handoff-failed">
+    Work got committed but Linear or GitHub did not catch up.
+  </Card>
+  <Card title="Something is out of date" icon="code-branch" href="/fixes/drift">
+    Two copies of the same thing disagree.
+  </Card>
+</CardGroup>
+
+## Adding to this
+
+<Warning>
+**When you solve something, write it down here.** That is the entire purpose.
+</Warning>
+
+Two kinds belong here, and the second is easy to skip:
+
+**Fixed in one project, not yet everywhere.** A repo hits a problem, solves it,
+and the fix never reaches the toolkit or the other repos. The next project hits
+the identical thing from scratch. This has already happened in both directions.
+
+**Too small to change the template.** A problem that is real, has a known
+answer, but is not worth changing `starter-web` over. Those have nowhere else to
+live, so they end up in someone's memory and then nowhere.
+
+Each entry wants four things:
+
+<Steps>
+  <Step title="What you saw">The literal output. That is what a future search matches on.</Step>
+  <Step title="What was actually wrong">Often nowhere near the error message.</Step>
+  <Step title="The fix">Exact commands.</Step>
+  <Step title="How to tell it is fixed">A check that would have failed before.</Step>
+</Steps>
+
+## The one that cost the most so far
+
+Not any single bug — **the absence of version numbers**. Nothing carries one:
+not the toolkit, the starters, or the container image.
+
+So when two copies disagreed there was no way to ask which was newer, and an
+afternoon went into "fixing" a toolkit that was already correct upstream, using
+files from a project that was itself behind. See [Drift](/fixes/drift).

@@ -1,0 +1,71 @@
+---
+title: "The agent did nothing"
+description: "It ran, finished cleanly, and produced no commits."
+---
+
+## "backlog is dry" and you expected work
+
+**Actually wrong:** usually nothing. The filter is strict on purpose: an issue
+must be `ready-for-agent`, **not started**, and have **every blocker Done**.
+
+Check what it sees:
+
+```bash
+linear ready --project "<name>"
+```
+
+Common reasons an issue you meant to queue does not appear:
+
+| | |
+| --- | --- |
+| Labelled `ready-for-human` | Correct. Decisions are never taken unattended |
+| Blocked | The blocker must be `Done`, not just started |
+| Already `In Progress` or `In Review` | Started counts as taken |
+| In `Backlog` while something else sits in `Todo` | It prefers Todo and only falls back when Todo is empty |
+
+---
+
+## It claimed a ticket and still committed nothing
+
+**Actually wrong:** the work was already done. The agent went to do it, found it
+true, and had no clean way to say so.
+
+This happened when three commits sat on an **unpushed local branch** for three
+days. Every check against `origin/main` said the repo was idle; the work existed
+the whole time.
+
+**Fix:** `git log origin/main..HEAD` before blaming the agent. Push what is
+finished and close the issues.
+
+<Note>
+`origin/main`'s date is a proxy for activity, not the fact. Unpushed work is
+invisible to every remote check, including the ones you and I run.
+</Note>
+
+---
+
+## "No local <name> skill"
+
+**Seen, mid-run:** *"No local tdd skill; I'll follow the red-green loop the DoD
+itself describes."*
+
+**Actually wrong:** the container had **no skills at all**. The image installed
+Claude Code and nothing else; the runner only copied `node_modules`; and the
+host's own skills are absolute symlinks into `~/DevProj/toolkit`, which the
+container does not mount.
+
+**Fix, both halves:**
+
+1. The image carries them. `toolkit-image` builds with the **toolkit root** as
+   its context so the Dockerfile can reach `skills/` — a Dockerfile cannot COPY
+   from outside its context, and the skills live a level up from `sandcastle/`.
+   Core goes to `~/.claude/skills`; the full set to `/opt/toolkit`.
+2. `onSandboxReady` links whatever `.claude/skillsets` names from `/opt/toolkit`.
+
+**Confirmed fixed when:** the setup step prints `skills: N linked`, N larger than
+the core count. For `boost33-identity`: 33 core, 65 after.
+
+<Tip>
+Only core is global, because every skill's description costs context in every
+session. A repo asks for the rest.
+</Tip>

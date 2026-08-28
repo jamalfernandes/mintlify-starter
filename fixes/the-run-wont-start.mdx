@@ -1,0 +1,84 @@
+---
+title: "The run won't start"
+description: "It exits before the agent says anything."
+---
+
+## `Cannot read package.json` in the toolkit folder
+
+**Seen:** `npm error path /Users/.../DevProj/toolkit/package.json`
+
+**Actually wrong:** you ran `npm run afk` from the toolkit. The `afk` script
+lives in the **repo**. The toolkit is shared machinery and deliberately has no
+`package.json`.
+
+**Fix:** `cd` into the repo first.
+
+---
+
+## `--max` does nothing, and npm warns about `--maxsockets`
+
+**Seen:** `npm warn Expanding --max to --maxsockets`
+
+**Actually wrong:** npm took the flag as its own. The runner never saw it.
+
+**Fix:** `npm run afk -- --max 3`. The `--` passes the rest through.
+
+---
+
+## `Cannot find package '@ai-hero/sandcastle'`
+
+**Actually wrong:** it is in `package.json` but was never installed.
+
+**Fix:** `npm install`. Then commit the lockfile.
+
+---
+
+## `--project is required (or set LINEAR_PROJECT)`
+
+**Seen:** the run dies at **Expanding shell expressions**.
+
+**Actually wrong:** `$LINEAR_PROJECT` expanded to empty **inside the container**.
+The prompt's `linear ready --project "$LINEAR_PROJECT"` is expanded by
+`sandbox.exec` before the agent starts, and that exec only sees the environment
+the container was *launched* with — the sandbox provider's, not the run-level one.
+
+**Fix:** in `.sandcastle/main.mts`, set it in both places:
+
+```ts
+sandbox: docker({
+  imageName: "sandcastle:node22",
+  env: { LINEAR_PROJECT: project },   // this one is easy to miss
+}),
+env: { LINEAR_PROJECT: project },
+```
+
+**Confirmed fixed when:** the run prints
+`linear ready --project "$LINEAR_PROJECT" → ~N tokens`.
+
+<Note>
+A repo scaffolded from a stale copy of the starter will be missing this. It is
+the single most likely reason a brand-new repo's first run dies.
+</Note>
+
+---
+
+## `error: no 'linear' MCP server at user scope`
+
+**Actually wrong:** either it is not registered, or it is registered under a
+different name or scope. The runner checks `~/.claude.json` for exactly
+`mcpServers.linear`.
+
+**Fix:**
+```bash
+claude mcp add -s user --transport http linear https://mcp.linear.app/mcp
+```
+Then authenticate with `/mcp`.
+
+<Warning>
+**Registered is not connected.** A server that exists but was never
+authenticated passes the check and then fails once the agent tries to read the
+backlog. `claude mcp list` must say **✔ Connected**.
+
+If you have two entries pointing at the same URL, remove the directory-scoped
+one: `claude mcp remove <name> -s local`.
+</Warning>

@@ -1,33 +1,36 @@
-> **First-time setup**: Customize this file for your project. Prompt the user to customize this file for their project.
-> For Mintlify product knowledge (components, configuration, writing standards),
-> install the Mintlify skill: `npx skills add https://mintlify.com/docs`
+# Writing in this repo
 
-# Documentation project instructions
+This is the reference for the AFK build workflow. Private, and written for Jamal
+and for Claude to read mid-task — not as an introduction for anyone else.
 
-## About this project
+## The rule that matters
 
-- This is a documentation site built on [Mintlify](https://mintlify.com)
-- Pages are MDX files with YAML frontmatter
-- Configuration lives in `docs.json`
-- Use the Mintlify MCP server, `https://mcp.mintlify.com`, to edit content and settings via MCP
-- Use the Mintlify docs MCP server, `https://www.mintlify.com/docs/mcp`, to query information about using Mintlify via MCP
+**When a workflow problem is solved, it goes in `fixes/`.** That is why this
+exists. A fix made in one project has twice failed to reach the others, and the
+only reason it was caught was somebody remembering. Do not rely on that again.
 
-## Terminology
+Two kinds belong there, and the second is the one people skip:
 
-{/* Add product-specific terms and preferred usage */}
-{/* Example: Use "workspace" not "project", "member" not "user" */}
+- Fixed in one project, not yet propagated to the toolkit or the starters.
+- Too small to justify changing a template, but real and recurring.
 
-## Style preferences
+## How entries are written
 
-{/* Add any project-specific style rules below */}
+**Index by the symptom, not the cause.** You recognise what was on screen long
+before you know what went wrong, so the heading is what you saw.
 
-- Use active voice and second person ("you")
-- Keep sentences concise — one idea per sentence
-- Use sentence case for headings
-- Bold for UI elements: Click **Settings**
-- Code formatting for file names, commands, paths, and code references
+Each entry gives four things: what you saw (the literal output), what was
+actually wrong (often nowhere near the message), the fix (exact commands), and
+how to tell it worked (a check that would have failed before).
 
-## Content boundaries
+## Voice
 
-{/* Define what should and shouldn't be documented */}
-{/* Example: Don't document internal admin features */}
+Plain language. Short sentences. Say the specific thing rather than the general
+one: "126 of 157 tests skip without a database" beats "some tests may not run".
+
+No marketing tone. No "simply" or "just". If something is genuinely confusing,
+say so and explain why rather than smoothing over it.
+
+Claims need evidence. If a number appears, it was measured. If a behaviour is
+described, it was observed. This file is read when something is already broken,
+and a confident wrong answer costs more than no answer.

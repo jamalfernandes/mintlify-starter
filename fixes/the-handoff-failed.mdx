@@ -1,0 +1,89 @@
+---
+title: "The handoff failed"
+description: "Work got committed but Linear or GitHub did not catch up."
+---
+
+## "no ticket id in the commit subject, so nothing was linked"
+
+**Seen:** the run succeeds, a PR exists, the branch is still `afk/<timestamp>`,
+and the Linear issue never moved.
+
+**Actually wrong:** the host reads the ticket id from the **front** of the commit
+subject, to rename the branch — and Linear links a PR to an issue by finding the
+id in the branch name. Two agents, two readings of the same instruction:
+
+| Subject | Parsed |
+| --- | --- |
+| `JFL-173: close the feedback loop…` | yes |
+| `…a linter that actually lints **(JFL-174)**` | **no** |
+
+The prompt only said *"put the issue identifier in the message."* Both obeyed it.
+
+**Fix, both ends.** The prompt now says *start* the subject with the id and a
+colon. The parser tries anchored first, then anywhere:
+
+```ts
+const ticket = (/^([A-Z][A-Z0-9]*-\d+)/.exec(subject)
+  ?? /\b([A-Z][A-Z0-9]*-\d+)\b/.exec(subject))?.[1];
+```
+
+**To recover a run that already missed it:**
+
+```bash
+linear attach JFL-174 <pr-url> --title "<subject>"
+linear review JFL-174 --comment "AFK run: <pr-url> (<sha>)"
+```
+
+---
+
+## The issue moved to In Review, then back to In Progress
+
+**Seen:** correct for a few seconds, then wrong.
+
+**Actually wrong:** **Linear's own GitHub integration.** It moves a linked issue
+to In Progress when a PR opens. The agent had already finished at In Review, so
+two automations disagree about what an open PR means.
+
+Real timings from JFL-173: agent set In Review at `15:46:38`, PR opened at
+`15:46:59`, Linear moved it back at `15:47:03`.
+
+**Fix:** remapping that transition is a **Business-plan** setting. On other plans
+the fix is in `main.mts`: wait ten seconds after opening the PR, then assert the
+state once, with a comment saying why it corrected.
+
+<Note>
+The old check ran immediately after `gh pr create`, saw the correct state, and
+reported "left alone" — then the webhook fired. It was right about the fact and
+wrong about the moment.
+</Note>
+
+---
+
+## "Could not groom the board"
+
+**Actually wrong:** `linear groom` runs on the **host**, not in the container, so
+it needs `LINEAR_API_KEY` in your shell. The container has its own copy from
+`.sandcastle/.env`, which is why everything inside the run worked.
+
+**Fix:** `source ~/.zshrc`, or a new terminal tab.
+
+<Warning>
+This is not cosmetic. Four host-side steps need that key: `git push`,
+`gh pr create`, `linear attach`, `linear review`. On a run that produces work,
+a keyless shell means the agent commits and **the entire handoff fails**.
+</Warning>
+
+---
+
+## `git push` rejected as non-fast-forward
+
+**Actually wrong:** a branch of that name already exists on the remote and has
+diverged — often a stale PR branch whose commit is the **pre-squash original** of
+something already merged.
+
+**Fix:** push to a new branch name. Do not force-push over it until you have
+checked what the remote commit actually is:
+
+```bash
+git diff <remote-commit> origin/main --stat   # empty means main already has it
+```

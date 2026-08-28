@@ -1,0 +1,51 @@
+---
+title: "Changelog"
+description: "What changed in the workflow itself, newest first."
+---
+
+<Note>
+This starts on 28 August 2026, the day the workflow was first used on the Boost33
+repos. Anything before that is in the toolkit's git history.
+
+**Add an entry when you change the machinery** — the toolkit, a starter, the
+image, or the prompt. Not when you use it.
+</Note>
+
+## 28 August 2026
+
+### Skills reach the container
+
+An AFK agent had **no skills at all** — it said so mid-run: *"No local tdd skill;
+I'll follow the red-green loop the DoD itself describes."* Every run in every repo
+had been like this.
+
+`toolkit-image` now builds with the toolkit root as its context so the Dockerfile
+can reach `skills/`. Core is baked to `~/.claude/skills`; the full set to
+`/opt/toolkit`. `onSandboxReady` links whatever `.claude/skillsets` names.
+
+*Measured: 33 core, 65 after linking, in `boost33-identity`.*
+
+### The commit subject parser accepts the id anywhere
+
+The host read the ticket id only from the **front** of the commit subject. An
+agent that wrote `…(JFL-174)` at the end produced a correct commit and a
+completely broken handoff: no branch rename, no PR link, issue stuck.
+
+Prompt now asks for the id at the start and says why. Parser tries anchored, then
+anywhere.
+
+### In Review is re-asserted after the PR opens
+
+Linear's GitHub integration moves a linked issue to In Progress when a PR opens,
+undoing the agent four seconds after it finished. Remapping that is a
+Business-plan setting, so `main.mts` now waits ten seconds and asserts once, with
+a comment explaining the correction.
+
+### Two repos joined the workflow
+
+`boost33-hub` and `boost33-identity` scaffolded, gated and proven end to end.
+Each took a real ticket from Todo to a reviewed pull request.
+
+### Documentation moved here
+
+The toolkit's `docs/` are superseded by this site and now point at it.

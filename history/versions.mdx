@@ -1,0 +1,53 @@
+---
+title: "Versions"
+description: "What is installed where, and how to tell when something is behind."
+---
+
+<Warning>
+**Nothing carries a version number yet.** Not the toolkit, the starters, or the
+container image. That is the gap this page exists to close, and it is the direct
+cause of the worst hour of the build so far — see [Drift](/fixes/drift).
+</Warning>
+
+## What to check, and how
+
+Until versions exist, these are the only honest answers:
+
+| Thing | How to tell what you have |
+| --- | --- |
+| **Toolkit** | `git -C ~/DevProj/toolkit log -1` — if that fails, it is not a clone and cannot be trusted |
+| **Canonical toolkit** | `gh repo view jamalfernandes/toolkit --json pushedAt` |
+| **Container image** | `toolkit-image --check` — reports existence and UID, **not** age |
+| **Core skills** | `./install.sh --check` |
+| **A repo's copy** | Compare `.sandcastle/main.mts` against the toolkit's |
+
+## The proposal
+
+A `VERSION` file in the toolkit, bumped when anything under `sandcastle/`,
+`bin/` or `sets/` changes, plus the same string baked into the image as a label
+and printed by the runner at start-up.
+
+Then a run announces which machinery it used, and "is this current?" becomes a
+comparison instead of an investigation.
+
+<Note>
+This is not built. It is written down because the reason it matters is fresh: a
+whole afternoon went into reconciling copies that a single printed number would
+have settled in seconds.
+</Note>
+
+## Known state, 28 August 2026
+
+| | |
+| --- | --- |
+| Toolkit on GitHub | `fc946c7`, 27 Aug |
+| Toolkit on jmini | **not a git repo** — file-synced, stale |
+| Image | `sandcastle:node22`, rebuilt 28 Aug with skills baked in |
+| Repos on the workflow | `boost33-hub`, `boost33-identity` |
+| Repos not yet | `boostledger`, `boostscore` |
+
+<Warning>
+Two fixes exist only on jmini's local copy and are **not on GitHub**: baking
+skills into the image, and the commit-subject ticket parser. They need pushing
+from a real clone before any other machine can benefit.
+</Warning>

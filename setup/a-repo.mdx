@@ -1,0 +1,85 @@
+---
+title: "Putting a repo on the workflow"
+description: "What to copy, what to write, and the one thing to prove first."
+---
+
+## Copy from the starter
+
+From `starter-web` (or `starter-ios`):
+
+| Path | What it is |
+| --- | --- |
+| `.sandcastle/` | Dockerfile, runner, prompt, and the `linear` CLI |
+| `.mcp.json` | Linear MCP for interactive sessions |
+| `.claude/skillsets` | Which skill sets this repo wants |
+| `docs/agents/` | Where the tickets are, and the label meanings |
+| `docs/adr/0000-template.md` | For decisions worth keeping |
+
+Then in `package.json`:
+
+```json
+"scripts": { "afk": "npx tsx .sandcastle/main.mts" },
+"devDependencies": { "@ai-hero/sandcastle": "^0.12.0" }
+```
+
+**Run `npm install` after.** Declaring the dependency and installing it are two
+steps, and only doing the first leaves the documented command broken.
+
+## Write two files by hand
+
+**`docs/agents/issue-tracker.md`** must name the Linear project:
+
+```markdown
+| Project | **Boost33 Hub** |
+```
+
+The runner reads that with a regex. If it cannot find it, nothing runs.
+
+**`CLAUDE.md`** — replace it, do not append. If the repo previously pointed
+agents somewhere else for their priorities, leaving that in gives the agent two
+instruction sets, and the repo-level one wins on first read.
+
+## Copy the token file
+
+```bash
+cp ~/.config/toolkit/afk.env .sandcastle/.env
+```
+
+Once per working copy. It is gitignored; check that it actually is.
+
+## Check the gitignore
+
+These four must be ignored, and the example must not be:
+
+```
+.sandcastle/logs/
+.sandcastle/worktrees/
+.sandcastle/patches/
+.claude/skills/
+!.sandcastle/.env.example
+```
+
+`.claude/skills/` holds absolute symlinks resolved per machine. Committing them
+breaks your other machine.
+
+## Then prove the container can run the tests
+
+<Warning>
+**Do this before any unattended run.** Build a throwaway worktree, run the suite
+inside the container, and compare the count to the host.
+
+Use a worktree, not your working copy: `npm install` in a Linux container against
+a mounted macOS directory replaces the native binaries and breaks your host.
+</Warning>
+
+```bash
+git worktree add /tmp/gate HEAD
+docker run --rm --entrypoint bash \
+  -v /tmp/gate:/home/agent/workspace -w /home/agent/workspace \
+  sandcastle:node22 \
+  -lc 'npm install >/dev/null 2>&1 && npx vitest run --reporter=dot 2>&1 | tail -5'
+git worktree remove --force /tmp/gate
+```
+
+If the numbers match the host, you are done. If tests skip, **write the real
+number into `CLAUDE.md`** so an agent knows what a green run is worth.
