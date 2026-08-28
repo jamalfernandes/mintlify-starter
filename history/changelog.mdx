@@ -4,6 +4,33 @@ description: "What changed in the workflow itself, newest first."
 icon: "clock-rotate-left"
 ---
 
+## 28 August 2026, evening
+
+### Score joined, and the ledger's scaffold merged
+
+`boostscore` is the fourth repo on the loop, Linear project **Boost33 Score**.
+The ledger's scaffold went in as BoostLedger #62.
+
+### Lint that asks a question instead of failing
+
+Score was on Next 15 with `next lint` and no eslint config. That combination does
+not error — it opens an interactive menu, which in an unattended run reads as a
+hung agent until the idle timeout. Now `eslint .` against a flat config, wired
+differently from the Next 16 repos because the Next 15 preset is still
+eslintrc-style.
+
+### A typecheck that only ever passed on machines that had built
+
+Score imports five `.png` files, and the declarations that make those typecheck
+come from `next-env.d.ts`, which `next build` generates and `.gitignore` excludes.
+Clean checkouts have never typechecked. Found by the container gate, fixed with a
+committed `types/assets.d.ts`.
+
+### Four more entries in the fix log
+
+All on [putting an old repo on the workflow](/fixes/an-existing-repo), which is
+now eight entries and the most useful page here for the repos still to come.
+
 ## 28 August 2026, later
 
 ### The ledger and wallet joined the workflow
