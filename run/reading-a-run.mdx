@@ -1,50 +1,132 @@
 ---
 title: "Reading a run"
-description: "The agent's summary is a claim, and the transcript is thinner evidence than it looks. What to check, in what order."
+description: "The agent's summary is a claim, and a green run can still end with work stranded. What to check, in what order."
 icon: "magnifying-glass"
 ---
 
-A finished run ends with a confident summary: what was built, which tests pass, every acceptance criterion covered. That summary is the agent's account of its own work. It is usually right. It is never evidence.
+A finished run ends with confident summaries: what was built, which tests pass, every acceptance criterion covered, both review axes satisfied. Those summaries are the agent's account of its own work. They are usually right. They are never evidence.
 
-This page is about the gap between the two, using a real run of `JFL-88` on CFFD API.
+This page works through a real run on CFFD API — `npm run afk -- --max 5`, three iterations, three commits, `JFL-133` then `JFL-136` then `JFL-117`. It is a **good** run. The agent wrote tests first, caught a stale premise in a ticket, reviewed its own diff on two axes and acted on the findings. It still needs reading, and the reason is in the last four lines.
 
-## What each layer of the output is actually worth
+## Start at the bottom
+
+```text
+pull request https://github.com/jamalfernandes/cffd-api/pull/11
+
+Could not open the PR: Command failed: linear attach JFL-117 …
+The commits are safe on afk/1788092037916. Push and open it by hand.
+
+Could not groom the board; run `linear groom` by hand.
+```
+
+Two failures, after three iterations that went well. They scroll past in a second and they are the only part of the run that needs you to do something tonight.
+
+Read the closing block first, every time. Everything above it describes work; the closing block tells you whether that work arrived.
+
+## One branch, three commits, one pull request
+
+This is the structural fact that changes how you review, and nothing announces it.
+
+| Iteration | Ticket | Commit |
+| --- | --- | --- |
+| 1 | JFL-133 — a money figure prints in full or the document is refused | `0702805` |
+| 2 | JFL-136 — the collision check measures real ink, not a stub | `2ee11ca` |
+| 3 | JFL-117 — refuse a non-integer amount | `1b29445` |
+
+All three landed on one branch and opened as **one pull request**, which GitHub titled after the last commit. So PR #11 says _JFL-117_ and contains three unrelated tickets.
+
+```bash
+gh pr view 11 --json commits --jq '[.commits[].messageHeadline]'
+```
+
+Then the `linear attach` failed. JFL-117 has no PR link, and JFL-133 and JFL-136 never had one — the run only ever attaches the last ticket. Three issues sit in `In Review` and none of them points at the code.
+
+<Warning>
+  Reviewing "the PR for JFL-117" here means reviewing three tickets against one diff. Review **per commit** instead, so each one is read against the acceptance criteria it was written for.
+
+  ```bash
+  git log --oneline origin/main..origin/afk/jfl-117-refuse-a-non-integer-amount-rather-than-print-a-ma
+  git show 0702805
+  ```
+</Warning>
+
+## What each layer of the output is worth
 
 | What you are looking at | What it proves |
 | --- | --- |
 | The closing summary | What the agent believes it did |
 | A `Bash(...)` line | That a command was issued. Not what it printed |
 | The prose between those lines | The agent's reading of output you never saw |
-| `commits 1` and a sha | That something was written to disk |
-| The diff on the pull request | What actually changed |
+| A sub-agent's review | A second read of the same diff by the same model |
+| `commits 3` and three shas | That something was written to disk |
+| The diff, commit by commit | What actually changed |
 | The suite, run by you, on that branch | Whether it works |
 
 Only the last two rows are yours. Everything above them is testimony.
 
-## The truncation problem
+## Reds worth trusting
 
-Look at how every test invocation in that run was written:
+The strongest evidence in this run is the shape of its failures. Compare:
 
 ```bash
-npm run test 2>&1 | tail -25
-npm run typecheck 2>&1 | tail -8 && npm run test 2>&1 | tail -8
+npx vitest run src/domain/layout.test.ts -t "twelve-integer-digit"   # "Red (all three fail)"
+npx vitest run src/domain/layout.test.ts -t "outgrows the column"    # "Red on en movement (Transaction)"
 ```
 
-The agent pipes its own commands through `tail` to save context. That is sensible behaviour and you want it. But it means the agent itself only ever saw the last eight lines, and you saw a summary of those eight lines.
+Those are named tests failing on assertions, in a file the agent had just written tests into. That is a real red, and it is the thing you most want to see before a green.
 
-So when the transcript says **`Full feedback loop green (typecheck, 14 tests, lint clean)`**, that sentence is three layers away from a test runner. Nothing in the scrollback shows you a single test name.
+It is worth knowing the weak version by contrast. An earlier run reported _"Red confirmed (module missing)"_ — the tests failed because the file they import did not exist yet. That is a **loading** failure. Every test in the file, including one that asserts nothing at all, produces exactly the same red.
 
-<Warning>
-  Ask which command would have produced a _different_ transcript if the tests had silently not run at all. For `npm run test | tail -8`, the answer is often none: a runner that matches zero files still exits `0` on some configurations, and the tail looks calm either way.
-</Warning>
+<Tip>
+  A `-t` filtered run also hides the rest of the suite: green under `-t` is not a green suite. In this run the agent followed each slice with a full `npm run test`, which is the right habit. Check that it did.
+</Tip>
 
-## The check, in four commands
+## The truncation problem
 
-Run these on the branch the run pushed. Nothing here takes more than a minute.
+Every full-suite invocation in this run was written like this:
+
+```bash
+npm run typecheck 2>&1 | tail -4 && npm run test 2>&1 | tail -8 && npm run lint 2>&1 | tail -5
+```
+
+The agent pipes its own commands through `tail` to save context, which is sensible and you want it. But it means the agent saw eight lines, and you are reading its summary of those eight lines. When the transcript says **`All green: typecheck, 125 tests, lint clean`**, that sentence is three layers from a test runner, and no test name appears anywhere in the scrollback.
+
+One useful habit: the totals across iterations should tell a coherent story. Here they run 115, then 118, then 125 — rising, with each iteration's additions accounted for. A count that drops, or holds still while files were added, is worth a minute.
+
+## The self-review is not your review
+
+This run used the `code-review` skill, spawning a **Standards** and a **Spec** sub-agent against each diff. They earned their place. Between them they caught two contradictory fixture comments, a ceiling literal duplicated across three files with no test guarding the drift, and a duplicated block of PDF assertions. The agent fixed all of them.
+
+But they are the same model reading the same diff, and this run shows exactly where that runs out.
+
+The Spec reviewer found the sharpest thing in the whole transcript:
+
+> The new `render.test.ts` test asserts only `%PDF-` / `%%EOF`. Overlapping ink still produces a valid PDF, so this cannot detect an overprint in the overdraft section — it only catches a render _fault_. Its comment overstates what it guards.
+
+Correct. The agent's response was to **tighten the comment**. Checked on the branch afterwards: the assertion is still `%PDF-` and `%%EOF`, now behind an `expectWellFormedPdf` helper.
+
+That is not wrong. Making a comment honest is a legitimate fix, and strengthening the assertion may not be worth the effort. But it is a _judgement about how much proof is enough_, and that judgement is the one thing a self-review cannot make on your behalf.
+
+## The quiet sentences
+
+The lines that matter are rarely the ones with tick marks. Each of these is stated plainly in the middle of a wall of green.
+
+| What the agent said | Why it matters |
+| --- | --- |
+| "the QA-harness PDF acceptance item is not exercised by the repo's in-tree checks" | **An acceptance criterion went unmet and the ticket moved to `In Review` anyway.** The agent said so, in the summary and in Linear. Nothing stops it |
+| "the ticket's premise that PDFKit re-wraps the string is stale" | The agent narrowed a ticket's scope on its own reading of git history. It was right. Confirm the reasoning, not just the conclusion |
+| "`template-id.ts` shows as `Bin`" | Two literal NUL bytes make git treat it as binary, so `git diff` cannot show you that hunk at all. Filed as JFL-130 |
+| "I picked this over the first backlog item, JFL-95, because…" | It declined the queue's first ticket, twice. Sound reasoning both times, and worth knowing it happened |
+
+The first row is the one to internalise. A ticket can pass every check the repo has, satisfy both review axes, and still fall short of what it promised — because the check its acceptance criteria named does not exist here.
+
+## The check, in five commands
+
+Run these on the pushed branch. None of it takes long.
 
 ```bash
 git fetch origin
-git checkout afk/jfl-88-refuse-a-structurally-wrong-statement-payload
+git checkout afk/jfl-117-refuse-a-non-integer-amount-rather-than-print-a-ma
 npm ci
 ```
 
@@ -54,7 +136,7 @@ npm ci
 npx vitest run --reporter=verbose
 ```
 
-This turns `14 tests` into fourteen sentences. Read them against the ticket's acceptance criteria. A count can be padded; a list of names cannot hide what it does not cover.
+This turns `125 tests` into 125 sentences. Read them against each ticket's acceptance criteria. A count can be padded; a list of names cannot hide what it does not cover.
 
 **2. Count the assertions, not the tests.**
 
@@ -62,46 +144,27 @@ This turns `14 tests` into fourteen sentences. Read them against the ticket's ac
 grep -c "expect(" src/domain/validate-statement.test.ts
 ```
 
-A test with no `expect` passes. So does a test whose `expect` is inside a callback that never fires.
+A test with no `expect` passes. So does one whose `expect` sits inside a callback that never fires.
 
 **3. Look for anything switched off.**
 
 ```bash
-grep -rn "\.skip\|\.todo\|\.only" src
+git grep -n -E "\.skip\(|\.todo\(|\.only\(" -- 'src/**/*.ts'
 ```
 
-`.only` is the dangerous one. It makes the suite green by running almost none of it, and the summary line still reads as a pass.
+`.only` is the dangerous one: it makes the suite green by running almost none of it, and the summary line still reads as a pass. Clean on this branch.
 
 **4. Prove the tests can fail.**
 
-Break the implementation on purpose, run the suite, and watch it go red. Then undo it. If deleting the rule under test does not fail anything, the test is decorative.
+Break the implementation on purpose, run the suite, watch it go red, undo it. If deleting the rule under test fails nothing, the test is decorative.
 
-## The red that was not really red
+**5. Read the diff one commit at a time.**
 
-The agent reported this, and it is the most instructive line in the whole run:
+```bash
+git show 0702805 && git show 2ee11ca && git show 1b29445
+```
 
-> Red confirmed (module missing, plus the 3 existing money tests still pass).
-
-Read it again. The tests failed because the file they import did not exist yet. That is a _loading_ failure, not an _assertion_ failure.
-
-The point of writing the test first is to watch it fail for the reason you expect: the rule is not enforced. A missing-module error proves only that you have not written the module. Every test in the file, including one that asserts nothing at all, produces exactly the same red.
-
-<Tip>
-  The stronger sequence is: write the tests, write an empty stub that satisfies the imports, and _then_ confirm red. Now the failures are assertion failures with real messages, and you have seen the tests do their job before they turn green.
-</Tip>
-
-## Claims worth spot-checking
-
-These are agent statements from the same run that are dismissals rather than descriptions. Each is checkable in one command.
-
-| The claim | The check |
-| --- | --- |
-| "none of the findings are in my changed files" | `git diff main...HEAD --stat` |
-| "only my four new files" | `git status --short` at that commit |
-| "reconciliation is the follow-up slice" | Is that follow-up actually a ticket, or just a sentence? |
-| "the `tdd` skill isn't available, I followed the loop manually" | See [The agent did nothing](/fixes/the-agent-did-nothing). A missing skill is a real fault, not a footnote |
-
-That last one matters more than it looks. The agent worked around a broken environment and mentioned it in passing. The workaround was fine; the broken environment was still broken on the next run, and nobody had written it down.
+Because one pull request here is three tickets, and the title names only the last.
 
 ## Nothing else is checking
 
@@ -109,29 +172,39 @@ That last one matters more than it looks. The agent worked around a broken envir
 ls .github/workflows
 ```
 
-On CFFD API today this directory does not exist. There is no CI. No check re-runs those tests when the pull request opens, and the green tick you are used to seeing on GitHub is not there to be missing.
+On CFFD API today this directory does not exist. There is no CI. Nothing re-runs the suite when the pull request opens, and the green tick you are used to seeing on GitHub is not there to be missing.
 
-So the four commands above are not a second opinion. Until CI exists, they are the **only** time the suite runs on a machine that is not the one that wrote it.
+The veraPDF step that would have covered that unverified acceptance item was dropped in an earlier slice and never replaced, so it has no home at all. Which means the five commands above are not a second opinion. Until CI exists, they are the **only** time the suite runs on a machine that is not the one that wrote it.
 
 ## Reading the closing block
 
 ```text
-iterations  1
-commits     1
-branch      afk/1787842899240
+iterations  3
+commits     3
+            0702805a
+            2ee11ca6
+            1b294457
+branch      afk/1788092037916
 finished    backlog is dry
-pushed      afk/jfl-88-refuse-a-structurally-wrong-statement-payload
-up next: nothing (every ready issue is blocked) · 14 held in Backlog · 0 moved
+pushed      afk/jfl-117-refuse-a-non-integer-amount-rather-than-print-a-ma
 ```
 
-The run was launched with `--max 20` and stopped after one iteration. That is not a failure, and it is also not completion.
+**"Backlog is dry"** means _nothing eligible remains_, which is a different sentence from _the work is done_. Merging often unblocks several tickets at once, so the usual move is to review, merge, and run again rather than assume the queue is empty.
 
-**"Backlog is dry"** means _nothing eligible remains_, which is a different sentence from _the work is done_. The last line says so plainly: fourteen issues are sitting in Backlog, every one of them blocked by something not yet marked Done. One merged ticket often unblocks several, so the usual fix is to review and merge, then run again rather than assume the queue is empty.
+The run was launched with `--max 5` and stopped at three, having also emitted a completion promise:
 
-`Context window: 86k` is worth a glance too. Comfortable here. When a run ends near the limit, the agent was compressing its own history while working, and its account of early iterations is the least reliable part of the transcript.
+```text
+COMPLETE
+```
+
+That is the agent choosing to stop, not the runner hitting its limit.
+
+The three context numbers — **162k, 152k, 64k** — are one per iteration. The first two are high. When an iteration ends near the limit, the agent was compressing its own history while working, and its account of that iteration's early steps is the least reliable prose in the transcript.
 
 ## What this one got right
 
-Checked afterwards: the new test file had eleven `it` blocks, the suite already had three, and the reported total was fourteen. The claim held exactly.
+Checked afterwards, on the branch: the `expectWellFormedPdf` helper was extracted as claimed, the all-three-sections render test exists, no test is skipped or `.only`, and all three commits are present with the shas reported. Every claim held.
 
-That is the normal outcome, and it is the reason to keep checking rather than to stop. You are not looking for a lying agent. You are looking for the run where a skill failed to load, or the runner matched no files, or a `.only` slipped in — and the summary read precisely as calm and precise as this one did.
+That is the normal outcome, and it is the reason to keep checking rather than to stop. You are not looking for a lying agent. You are looking for the run where an acceptance criterion had nothing to verify it, or where `linear attach` failed on the last line and left three tickets in review pointing at nothing at all.
+
+Which is this run.
