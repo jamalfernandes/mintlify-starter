@@ -1,0 +1,117 @@
+---
+title: "Glossary"
+description: "Every term this site uses as though it means one thing, plus the handful that do not."
+icon: "book-bookmark"
+---
+
+This page is the vocabulary authority for the site. When a page and this one disagree, one of them is wrong and it is worth a minute to work out which.
+
+It is the site-level equivalent of a repo's `CONTEXT.md`, and it exists for the same reason: a term that drifts quietly costs more than a term nobody defined.
+
+<Note>
+  Grouped by area rather than alphabetically, because you usually know roughly where a word lives. The last section is the one to read first — five words on this site mean more than one thing.
+</Note>
+
+## The route
+
+| Term | What it means here |
+| --- | --- |
+| **Route** | The six stops a product travels, from a sentence you said out loud to code merged in a repo. Identical for every product. See [The route](/route/index) |
+| **Stop** | One of the six. Stops 1 to 3 happen once per product; 4 to 6 repeat for its life |
+| **Gate** | A stop where **you** decide and nothing proceeds without you. Two of the six are gates, placed exactly where judgement is the scarce thing |
+| **Build-ready gate** | Stop 3. Ten checks, but what it produces is not a tick list — it is your first published spec |
+| **Fidelity gate** | The design-side approval before anything that renders goes to an agent. Strictest on the native path, where a design regression is invisible in a diff |
+| **Container gate** | Proving the container can run the suite, with a count matching the host, before any unattended run. Not one of the six stops. See [Putting a repo on the workflow](/setup/a-repo) |
+| **Playbook** | The older phase numbering, 0 to 15, that the route absorbed. Phases 0 to 3 became stop 1, phases 4 to 7 became stop 2, and phases 9 to 15 stopped being phases at all and became Linear issues entering at stop 4 |
+| **Design track** | Stop 2's work: information architecture, design system, screens in both themes, motion. An API has none |
+| **Light track** | The compressed variant for a marketing site, four stages instead of the full Playbook. Its own test for itself: would phase 3 have anything in it? |
+| **Product path** | One of four shapes — **A** marketing site, **B** SaaS web app, **C** API or service, **D** native app. They travel the same six stops and differ in how much design track exists and whether an agent can be left alone. See [Product paths](/route/product-paths) |
+| **Night shift** | Stop 5. The stretch that runs while you sleep, and the reason the route is shaped this way |
+
+## The work
+
+| Term | What it means here |
+| --- | --- |
+| **Ticket**, **issue** | One Linear issue. Interchangeable in prose |
+| **Vertical slice**, **tracer bullet** | A thin path through every layer, rather than one layer at a time. The shape every ticket takes |
+| **Acceptance criteria** | What done looks like, written so a machine can check it. The ones that work best include a line like _"prove it fails: introduce a violation, watch it exit non-zero, remove it"_ |
+| **Blocking edge** | A declared dependency between tickets. A ticket is not eligible until every blocker is `Done` |
+| **Eligible** | Labelled `ready-for-agent`, not started, and every blocker `Done`. Exactly what the runner will pick up, and nothing else |
+| **`ready-for-agent`** | The label. Without it, an agent never sees the issue at all |
+| **`needs-triage`** | A QA finding, filed but not yet agent-ready. Triage decides which ones go back to `ready-for-agent` |
+| **`needs-info`** | The agent found the ticket ambiguous and stopped rather than guessing. **Working correctly.** Read its comment and sharpen the ticket |
+| **`In Progress`**, **`In Review`** | The only two states an agent sets. It claims at the first and stops at the second |
+| **`Done`** | Yours alone. There is deliberately no `done` verb in the `linear` CLI |
+| **Spec** | What `/to-spec` produces from a conversation and publishes to Linear as a parent issue. Synthesis, not an interview — run it cold and you get a document that reads fine and skips the thinking |
+| **ADR** | A decision worth keeping, in `docs/adr/`. Written as decisions resolve, not reconstructed afterwards |
+| **`CONTEXT.md`** | A repo's glossary. Terms land there as they resolve during grilling. The per-project equivalent of this page |
+| **Grilling** | The interview that turns a loose idea into something specified. `/grill-with-docs` when there is a repo under you, `/grill-me` when there is not |
+| **Round** | One batch of grilling questions, each with a recommended answer attached, so you can often say "yes to all except 3" |
+| **Frontier** | The whole set of open questions at once, rather than one at a time. What `/grilling` works through |
+| **Prototype** | Throwaway code answering one design question you cannot settle on paper. Lives on a `prototype/` branch and is pointed at from the issue |
+
+## The machinery
+
+| Term | What it means here |
+| --- | --- |
+| **The toolkit** | `~/DevProj/toolkit`. The skills, the `linear` CLI, the container image, the runner. **Identical in every project and never edited per project** |
+| **The starters** | `starter-web` and `starter-ios`. Copied into a new repo once, then owned by that repo and free to diverge |
+| **The filing rule** | If a file is meant to be edited by a project it belongs in a **starter**. If editing it in one project would be a bug it belongs in the **toolkit**. That settles every boundary question |
+| **Skill** | A named capability invoked with a slash. Most of the main flow is user-invocable only — an agent asking for `/to-spec` is refused, because an agent that can start its own planning will |
+| **Core** | The 32 skills linked globally on every machine. Small on purpose: every skill's description sits in the context window of every session in every project |
+| **Skillset** | A repo's committed `.claude/skillsets`, naming which sets it wants beyond core. Ten are named on [Every skill](/route/skills) — web, api, data, ios, design, security, ops, marketing, onepct, personal — on a page that says eleven exist. One of the two is wrong; check `~/DevProj/toolkit/sets/` |
+| **`toolkit-link`** | Links this repo's declared sets. Run once per repo, and again when `skillsets` changes |
+| **MCP server** | An external tool connection, **read once at session start**. A server added mid-session is invisible to that session. Linear must be registered at user scope under exactly the name `linear` |
+| **Nostos** | Which product gets Tuesday. The only place that sees a side project competing against a client deadline. **It holds no tickets, ever** |
+| **Linear** | Holds the work. One project per repo, named in `docs/agents/issue-tracker.md` so it cannot drift |
+| **Paper** | Where the design track is done |
+| **Conductor** | The working copies runs are launched from, under `~/conductor/repos/<repo>` |
+| **jmini** | The second Mac. Nothing syncs between machines — images, tokens and skill links are all per-machine, which is why setup runs once per computer |
+| **The vault** | The older notes system still holding a portfolio dashboard, a decision record and a message bus. Being retired, because Linear and Nostos already provide all three |
+
+## The run
+
+| Term | What it means here |
+| --- | --- |
+| **AFK** | Away from keyboard. The unattended run: `npm run afk` |
+| **Run** | One invocation. Produces **one branch and one pull request**, however many iterations it took |
+| **Iteration** | One ticket. `--max N` caps how many a run will take. The `--` matters, or npm swallows the flag as its own |
+| **sandcastle**, **the runner** | The orchestrator, `.sandcastle/main.mts`. Makes the worktree, starts the container, runs the agent, collects the commits, cleans up |
+| **The prompt** | `.sandcastle/prompt.md`. What the agent is told at the start of every iteration |
+| **Image** | The frozen template, `sandcastle:node22`. Built once per machine with `toolkit-image`. Never running |
+| **Container** | A running copy of the image, started fresh per run and thrown away at the end |
+| **Worktree** | A throwaway git checkout — the one folder that crosses into the container. That is the whole security model: the agent edits code and cannot reach anything else you own |
+| **Sandbox** | What the agent is allowed to touch while you are not watching. Docker for most paths; not Docker for anything Apple. See [Choosing a sandbox](/route/sandbox) |
+| **`linear` CLI** | `.sandcastle/bin/linear`. Travels inside the worktree, so the container can read and update the backlog without ever holding a credential |
+| **Feedback loop** | The two or three commands every repo declares, which **every commit runs green**: `typecheck`, `test`, and `lint` where it exists |
+| **Seam** | The level a test is written at. An API has one and it is ideal; a native app has three; a marketing site has few and they are mostly visual |
+| **Handoff** (host side) | The last step of a run: rename the branch to carry the ticket id, push, open a pull request, attach it to the Linear issue, set `In Review`. Runs **once per run**, so a multi-iteration run attaches only the last ticket |
+| **Backlog is dry** | Nothing **eligible** remains. Not the same sentence as nothing is left — blocked tickets are still sitting there, and merging usually unblocks several |
+| **Idle timeout** | A run dies after about fifteen quiet minutes, because a slow suite that prints nothing is indistinguishable from a hung agent |
+| **Smart zone** | The context range where output quality holds up. Phases 0 to 3 on a real product run 80k to 120k tokens, which is inside it but not comfortably — hence the checkpoint |
+
+## Drift and copies
+
+| Term | What it means here |
+| --- | --- |
+| **Drift** | Two copies of the same thing disagree and nothing says which is newer. **The most expensive failure in the system**, and the direct consequence of nothing carrying a version number. See [Something is out of date](/fixes/drift) |
+| **Canonical** | The copy on GitHub, not the one on your disk. Check `gh repo view` before concluding anything is behind |
+| **File-synced copy** | A folder that looks like a clone and has no `.git`. It can be stale **or ahead** — both have happened — so the direction has to be checked rather than assumed |
+| **Double entry** | One fact living in two places. Within a week one of them is lying. The reason Nostos holds no tickets |
+| **Unslop** | The house-style pass, applied to anything long before it is committed. Not a preference — it is what keeps the documents trusted enough to be read mid-task |
+
+## Words that mean two things here
+
+These are the ones that actually cause trouble, because each reading is plausible and nothing on the page tells you which is meant.
+
+| Word | The readings |
+| --- | --- |
+| **Handoff** | Three. `/handoff` the skill, which writes a portable file to carry context to a new session. The **host-side handoff** at the end of a run. And **developer handoff** in the design track, meaning tokens and component docs |
+| **Review** | Three, and the difference is the whole point of [Reading a run](/run/reading-a-run). `/code-review` is the agent reading its own diff on two axes. `In Review` is a Linear state an agent can set. **Your** review is the only one that ends in a merge |
+| **Gate** | Three. The **build-ready gate** at stop 3, the **fidelity gate** on the design side, and the **container gate** that proves the suite actually runs before you walk away |
+| **Project** | Three. A **Linear project**, one per repo. A **product**, the thing being built. And a **Nostos entry**, which schedules the first two and holds no work of its own |
+| **Set** | Two. A **skillset** a repo declares by name — web, api, ios and the rest. And the **core set**, the 32 skills global on every machine. Many of the first, exactly one of the second |
+
+<Warning>
+  **If you add a term to a page, add it here.** A word used confidently on one page and defined nowhere is how the next session ends up guessing, and guessing is what this whole system is arranged to avoid.
+</Warning>
