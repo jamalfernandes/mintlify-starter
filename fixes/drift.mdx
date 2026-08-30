@@ -80,6 +80,27 @@ _A real directory that differs_ means **two things installed a skill of the same
 
 ---
 
+## A docs page reads back empty and is not empty
+
+**Seen:** you open a page through the Mintlify editor or its MCP tools and get frontmatter and nothing else. Git has 2.5 KB of content in the same file.
+
+**Actually wrong:** the MDX does not parse, so the editor loads an empty document rather than reporting an error. On `fixes/the-agent-did-nothing` the cause was a heading reading `## "No local <name> skill"`. MDX treats `<name>` as an opening JSX tag, finds no closing tag, and gives up on the file.
+
+**What it cost:** the page was rewritten from scratch on the belief that it was a stub. Three documented cases were lost, including the unpushed-branch one, and were only recovered because a second repo still had the file. Writing through the editor does not warn you that you are overwriting something.
+
+**Fix:** wrap anything angle-bracketed in backticks, so ``<name>`` rather than bare `<name>`. Then check git before assuming a page is empty.
+
+```bash
+gh api repos/jamalfernandes/mintlify-starter/contents/<path> \
+  --jq '.content' | base64 -d | head -20
+```
+
+**How to tell:** the file's byte count in git is close to zero. If git has real content and the editor does not, the editor is wrong and the MDX is broken.
+
+<Warning>
+  **Page descriptions do not live in the file body.** They round-trip through navigation metadata, so editing the `description` in an MDX frontmatter block does nothing and gets silently reverted on save. Use `update_node`. The same applies to `title` and `icon`.
+</Warning>
+
 ## Two files disagree and both look plausible
 
 The general drill, in order:

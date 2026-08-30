@@ -1,0 +1,33 @@
+---
+title: "The PR shows a failing build"
+description: "Vercel's Preview check goes red on every branch that is not main, for reasons that have nothing to do with what the agent wrote."
+icon: "circle-exclamation"
+---
+
+## The Vercel check is always red on agent branches
+
+**Seen:** every `afk/*` PR shows a failing `Vercel` check saying `Deployment has
+failed`, on a branch that never touched deploy config.
+
+**Actually wrong:** the app's env validation runs at module load and throws if a required var is missing. `DATABASE_URL` and the rest of the production secrets are set in Vercel's **Production** environment only, never Preview, because nobody provisioned a second database for builds nobody looks at.
+
+`next build` always runs in production mode regardless of which environment it is building for, so a Preview build trips the exact same "is the environment configured" check a real production build does, and fails on whatever module happens to import the config first. The diff on the branch is not the problem.
+
+**Fix:** if nothing actually visits the Preview URL, which is true for any repo that deploys by merging to `main` and never previews a branch, stop Preview from building at all rather than paying for a second database just to satisfy it.
+
+```json
+// vercel.json
+"ignoreCommand": "[ \"$VERCEL_GIT_COMMIT_REF\" != \"main\" ]"
+```
+
+**How to tell it is fixed:** the check goes from failing to **skipped**, not to passing. Preview stops building entirely. That is the point.
+
+<Warning>
+  **Do not gate that command on `VERCEL_ENV`.** It reads empty during Vercel's own Ignored Build Step, before the deployment's environment has been decided, so `$VERCEL_ENV != "production"` is true for every push including `main`, and it skips the **production** build instead.
+
+  That is not a loud failure. It is a production deploy that silently never happens. Caught within a minute here only because `/api/v1/health` kept answering from the previous deployment, since Vercel does not move traffic to a skipped build.
+
+  Use `VERCEL_GIT_COMMIT_REF`, which is what Vercel's own docs use for exactly this pattern.
+</Warning>
+
+Real case: `boost33-identity`, 28 August 2026.
