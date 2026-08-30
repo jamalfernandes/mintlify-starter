@@ -11,51 +11,38 @@ icon: "laptop"
     ```
 
     <Warning>
-    **Check this even if the folder already exists.** On jmini it existed as a
-    file-synced copy with no `.git`, so it could not `git pull` and quietly fell
-    weeks behind — while looking completely normal. See
-    [Drift](/fixes/drift).
+      **Check this even if the folder already exists.** On jmini it existed as a file-synced copy with no `.git`, so it could not `git pull` and quietly fell weeks behind while looking completely normal. See [Drift](/fixes/drift).
     </Warning>
 
     Confirm: `git -C ~/DevProj/toolkit log -1` should print a commit.
   </Step>
-
   <Step title="Run the wizard">
     ```bash
     cd ~/DevProj/toolkit
     ./setup-machine.sh
     ```
 
-    It asks for a Linear API key and a Claude token, hides them as you type, and
-    writes them to `~/.config/toolkit/afk.env` at mode 600. It also adds a line
-    to `~/.zshrc` that loads them into every new shell.
+    It asks for a Linear API key and a Claude token, hides them as you type, and writes them to `~/.config/toolkit/afk.env` at mode 600. It also adds a line to `~/.zshrc` that loads them into every new shell.
 
-    **Open a new terminal afterwards.** The shell you ran it in does not have
-    them.
+    **Open a new terminal afterwards.** The shell you ran it in does not have them.
   </Step>
-
   <Step title="Link the skills">
     ```bash
     ./install.sh
     ```
 
-    Symlinks the core set into `~/.claude/skills`, so a later `git pull` updates
-    them with no second step.
+    Symlinks the core set into `~/.claude/skills`, so a later `git pull` updates them with no second step.
 
-    Re-run it only when `core.txt` gains or loses a name — not when a skill's
-    content changes. Check any time with `./install.sh --check`.
+    Re-run it only when `core.txt` gains or loses a name, not when a skill's content changes. Check any time with `./install.sh --check`.
   </Step>
-
   <Step title="Build the container image">
     ```bash
     toolkit-image
     ```
 
-    Docker Desktop must be running, with 4 CPUs and 8 GB in Settings → Resources.
-    The default 2 CPUs makes runs slow enough that you stop using this.
+    Docker Desktop must be running, with 4 CPUs and 8 GB in Settings → Resources. The default 2 CPUs makes runs slow enough that you stop using this.
 
-    Confirm with `toolkit-image --check` — it must report your own UID. Get that
-    wrong and every file the agent writes is owned by somebody else.
+    Confirm with `toolkit-image --check` — it must report your own UID. Get that wrong and every file the agent writes is owned by somebody else.
   </Step>
 </Steps>
 
@@ -65,9 +52,6 @@ icon: "laptop"
 claude mcp add -s user --transport http linear https://mcp.linear.app/mcp
 ```
 
-**The name must be exactly `linear` and the scope must be user.** A
-directory-scoped server does not reach a spawned agent, and the runner checks
-`~/.claude.json` for that exact key.
+**The name must be exactly `linear` and the scope must be user.** A directory-scoped server does not reach a spawned agent, and the runner checks `~/.claude.json` for that exact key.
 
-Authenticate it with `/mcp` in Claude Code. Registered but unauthenticated looks
-fine to the check and fails at run time.
+Authenticate it with `/mcp` in Claude Code. Registered but unauthenticated looks fine to the check and fails at run time.

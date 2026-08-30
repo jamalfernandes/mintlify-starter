@@ -8,117 +8,77 @@ icon: "clock-rotate-left"
 
 ### Voice joined, and Score's scaffold merged
 
-`boost33-elite-content-forge` is the fourth and last Boost33 product on the loop,
-Linear project **Boost33 Voice**. Score's scaffold went in as BoostScore #30.
-Voice is deferred, so it is on the workflow to start from the same place as the
-others when it resumes, not to start work now.
+`boost33-elite-content-forge` is the fourth and last Boost33 product on the loop, Linear project **Boost33 Voice**. Score's scaffold went in as BoostScore #30. Voice is deferred, so it is on the workflow to start from the same place as the others when it resumes, not to start work now.
 
 ### The toolkit adopted two skills
 
-Voice committed 34 skills into its own repo from before the toolkit existed. 32
-were already in the toolkit by the same name, so both mechanisms together meant
-those descriptions appeared twice in every context window. `nextjs-supabase-auth`
-and `nodejs-best-practices` are in the toolkit now, and the vendored copies are
-gone.
+Voice committed 34 skills into its own repo from before the toolkit existed. 32 were already in the toolkit by the same name, so both mechanisms together meant those descriptions appeared twice in every context window. `nextjs-supabase-auth` and `nodejs-best-practices` are in the toolkit now, and the vendored copies are gone.
 
 ### Two more entries in the fix log
 
-The [lint entry](/fixes/an-existing-repo) now covers all three Next versions,
-which each fail differently: 15 prompts, 16 hunts for a directory called `lint`.
-And a new entry on repos that already carry vendored skills.
+The [lint entry](/fixes/an-existing-repo) now covers all three Next versions, which each fail differently: 15 prompts, 16 hunts for a directory called `lint`. And a new entry on repos that already carry vendored skills.
 
 ## 28 August 2026, evening
 
 ### Score joined, and the ledger's scaffold merged
 
-`boostscore` is the fourth repo on the loop, Linear project **Boost33 Score**.
-The ledger's scaffold went in as BoostLedger #62.
+`boostscore` is the fourth repo on the loop, Linear project **Boost33 Score**. The ledger's scaffold went in as BoostLedger #62.
 
 ### Lint that asks a question instead of failing
 
-Score was on Next 15 with `next lint` and no eslint config. That combination does
-not error — it opens an interactive menu, which in an unattended run reads as a
-hung agent until the idle timeout. Now `eslint .` against a flat config, wired
-differently from the Next 16 repos because the Next 15 preset is still
-eslintrc-style.
+Score was on Next 15 with `next lint` and no eslint config. That combination does not error — it opens an interactive menu, which in an unattended run reads as a hung agent until the idle timeout. Now `eslint .` against a flat config, wired differently from the Next 16 repos because the Next 15 preset is still eslintrc-style.
 
 ### A typecheck that only ever passed on machines that had built
 
-Score imports five `.png` files, and the declarations that make those typecheck
-come from `next-env.d.ts`, which `next build` generates and `.gitignore` excludes.
-Clean checkouts have never typechecked. Found by the container gate, fixed with a
-committed `types/assets.d.ts`.
+Score imports five `.png` files, and the declarations that make those typecheck come from `next-env.d.ts`, which `next build` generates and `.gitignore` excludes. Clean checkouts have never typechecked. Found by the container gate, fixed with a committed `types/assets.d.ts`.
 
 ### Four more entries in the fix log
 
-All on [putting an old repo on the workflow](/fixes/an-existing-repo), which is
-now eight entries and the most useful page here for the repos still to come.
+All on [putting an old repo on the workflow](/fixes/an-existing-repo), which is now eight entries and the most useful page here for the repos still to come.
 
 ## 28 August 2026, later
 
 ### The ledger and wallet joined the workflow
 
-`boostledger` is the third repo on the loop, and the first with real history
-behind it rather than a starter. Linear project **Boost33 Ledger and Wallet**.
-Eslint existed nowhere in it; turning it on found nine errors, eight of which were
-rule choices or dead code and one of which became JFL-184.
+`boostledger` is the third repo on the loop, and the first with real history behind it rather than a starter. Linear project **Boost33 Ledger and Wallet**. Eslint existed nowhere in it; turning it on found nine errors, eight of which were rule choices or dead code and one of which became JFL-184.
 
 ### The canonical runner caught up with the repos
 
-Two fixes had been living only in `~/DevProj/toolkit`, which syncs without its
-`.git` and so had nothing to push from: the ten-second wait before asserting In
-Review, and the prompt order that reviews the diff before committing rather than
-after. Both are in the toolkit now, so newly scaffolded repos get them.
+Two fixes had been living only in `~/DevProj/toolkit`, which syncs without its `.git` and so had nothing to push from: the ten-second wait before asserting In Review, and the prompt order that reviews the diff before committing rather than after. Both are in the toolkit now, so newly scaffolded repos get them.
 
 ### Two more entries in the fix log
 
-A page on [putting an old repo on the workflow](/fixes/an-existing-repo), which
-fails differently from a fresh one, and a
-[drift entry](/fixes/drift) for the case where the file-synced copy is the one
-that is ahead.
+A page on [putting an old repo on the workflow](/fixes/an-existing-repo), which fails differently from a fresh one, and a [drift entry](/fixes/drift) for the case where the file-synced copy is the one that is ahead.
 
 <Note>
-This starts on 28 August 2026, the day the workflow was first used on the Boost33
-repos. Anything before that is in the toolkit's git history.
+  This starts on 28 August 2026, the day the workflow was first used on the Boost33 repos. Anything before that is in the toolkit's git history.
 
-**Add an entry when you change the machinery** — the toolkit, a starter, the
-image, or the prompt. Not when you use it.
+  **Add an entry when you change the machinery:** the toolkit, a starter, the image, or the prompt. Not when you use it.
 </Note>
 
 ## 28 August 2026
 
 ### Skills reach the container
 
-An AFK agent had **no skills at all** — it said so mid-run: *"No local tdd skill;
-I'll follow the red-green loop the DoD itself describes."* Every run in every repo
-had been like this.
+An AFK agent had **no skills at all** — it said so mid-run: _"No local tdd skill; I'll follow the red-green loop the DoD itself describes."_ Every run in every repo had been like this.
 
-`toolkit-image` now builds with the toolkit root as its context so the Dockerfile
-can reach `skills/`. Core is baked to `~/.claude/skills`; the full set to
-`/opt/toolkit`. `onSandboxReady` links whatever `.claude/skillsets` names.
+`toolkit-image` now builds with the toolkit root as its context so the Dockerfile can reach `skills/`. Core is baked to `~/.claude/skills`; the full set to `/opt/toolkit`. `onSandboxReady` links whatever `.claude/skillsets` names.
 
-*Measured: 33 core, 65 after linking, in `boost33-identity`.*
+_Measured: 33 core, 65 after linking, in `boost33-identity`._
 
 ### The commit subject parser accepts the id anywhere
 
-The host read the ticket id only from the **front** of the commit subject. An
-agent that wrote `…(JFL-174)` at the end produced a correct commit and a
-completely broken handoff: no branch rename, no PR link, issue stuck.
+The host read the ticket id only from the **front** of the commit subject. An agent that wrote `…(JFL-174)` at the end produced a correct commit and a completely broken handoff: no branch rename, no PR link, issue stuck.
 
-Prompt now asks for the id at the start and says why. Parser tries anchored, then
-anywhere.
+Prompt now asks for the id at the start and says why. Parser tries anchored, then anywhere.
 
 ### In Review is re-asserted after the PR opens
 
-Linear's GitHub integration moves a linked issue to In Progress when a PR opens,
-undoing the agent four seconds after it finished. Remapping that is a
-Business-plan setting, so `main.mts` now waits ten seconds and asserts once, with
-a comment explaining the correction.
+Linear's GitHub integration moves a linked issue to In Progress when a PR opens, undoing the agent four seconds after it finished. Remapping that is a Business-plan setting, so `main.mts` now waits ten seconds and asserts once, with a comment explaining the correction.
 
 ### Two repos joined the workflow
 
-`boost33-hub` and `boost33-identity` scaffolded, gated and proven end to end.
-Each took a real ticket from Todo to a reviewed pull request.
+`boost33-hub` and `boost33-identity` scaffolded, gated and proven end to end. Each took a real ticket from Todo to a reviewed pull request.
 
 ### Documentation moved here
 

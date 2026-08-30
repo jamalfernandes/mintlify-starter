@@ -1,0 +1,135 @@
+---
+title: "The route"
+description: "Six stops from a loose idea to merged code. What each one produces, and where each one goes wrong."
+icon: "map"
+---
+
+## Why the shape is worth it
+
+You are one person. The route exists so that your thinking time and a machine's building time stop being the same hours.
+
+<Frame caption="The two lanes never wait for each other. That is the entire value.">
+  ![](/images/running-the-loop-1.svg)
+</Frame>
+
+Stops 1 to 3 happen once per product. Stops 4 to 6 repeat for its life.
+
+<Frame caption="Stops 4 through 6 are the loop you live in. Each pass is one feature, or one batch of fixes.">
+  ![](/images/running-the-loop-2.svg)
+</Frame>
+
+## Stop 1 · Start the project
+
+_Decisions, not deliverables._
+
+```bash
+/new-project
+```
+
+It asks two things: what you call it, and which of the four shapes it is. Everything else the interview produces.
+
+It creates the GitHub repo from the right starter, creates the Linear project, adds it to EaglePoint, prunes the starter down to the shape you named, then interviews you across Playbook phases 0 to 3: concept, research, architecture, data model.
+
+Phase 1 is the only phase whose answers are not in your head, so `/research` fires as a background agent the moment competitor and market questions surface. The interview keeps going while it reads.
+
+**Produces** `docs/brief.md` · `docs/research.md` · `docs/adr/000N-*.md` · `docs/data-model.md` · `CONTEXT.md` · `docs/product-spec.md`
+
+### Answer honestly, including "I have not decided"
+
+The interview is the product of this stop. "I do not know yet" is a real answer and it works the question differently. Guessing to seem decisive is how you get a spec describing a product you did not want.
+
+<Note>
+  **Take the checkpoint if it is offered.** Phases 0 to 3 on a real product run 80k to 120k tokens, which is inside the smart zone but not comfortably. The skill writes what it has after architecture and asks whether to continue or resume from the artefacts. Cheaper than finding the degradation in your data model.
+</Note>
+
+## Stop 2 · Design the screens
+
+_Playbook phases 4 to 7._
+
+Information architecture and flows, the design system, every screen in both themes, the motion spec. Run as Playbook prompts rather than as grilling, because the output is an artefact and not an argument. Done in Paper.
+
+This is the stop that varies most between product types, and for one of the four it disappears completely.
+
+**Produces** screen manifest · component manifest · tokens, light and dark · `export/`
+
+<Note>
+  **An API skips this entirely.** There are no screens, so go straight from stop 1 to stop 4.
+</Note>
+
+## Stop 3 · The build-ready gate
+
+_Gate. You decide._
+
+Ten checks, all green or you are not ready. But what the gate produces is not a green checklist, it is your first published spec.
+
+Open a session, re-grill briefly against the design artefacts, then run `/to-spec` in that same window. It publishes a parent issue to Linear.
+
+### Do not run `/to-spec` cold
+
+It turns a conversation into a spec. Point it at a folder with no conversation behind it and you get a document that reads fine and skips the thinking the step exists for.
+
+## Stop 4 · Grill one feature
+
+_Repeats forever._
+
+Every feature enters here, and so does every one of the old Playbook phases 9 to 15. Foundations, auth, push, testing and launch stop being phases in a separate tracker and become Linear issues seeded from the Playbook's checklists. One queue.
+
+```text
+/grill-with-docs → [/prototype via /handoff] → /to-spec → /to-tickets → build each ticket
+└────────── one unbroken context window ──────────┘   └── fresh context per ticket ──┘
+```
+
+Grilling works in rounds. Each round is a batch of questions with a recommended answer attached to each, so you can often say "yes to all except 3". Terms land in `CONTEXT.md` and decisions land in `docs/adr/` as they resolve, without being asked.
+
+If a question needs to be seen rather than argued, break out: `/handoff`, `/prototype` in a fresh session, `/handoff` back.
+
+<Warning>
+  **Do not clear or compact before `/to-tickets`.** The grilling, the spec and the tickets have to build on the same thinking. After `/to-tickets` you can clear freely, because each ticket is written to stand alone.
+</Warning>
+
+Each ticket is a vertical slice: a thin path through every layer rather than one layer at a time. It carries acceptance criteria and declares which tickets block it.
+
+## Stop 5 · Let the agent build
+
+_Night shift._
+
+```bash
+cd ~/conductor/repos/<repo>
+npm run afk
+```
+
+The runner takes one eligible ticket per iteration: labelled `ready-for-agent`, in `Todo`, every blocker `Done`. It builds test-first, reviews its own diff, runs the repo's checks, commits to a named branch and moves the issue to `In Review`.
+
+This is the half that makes the whole thing worth it for one person. You grill product A while the runner drains product B.
+
+[Running a ticket](/run-a-ticket) has the operating detail. [Inside the sandbox](/run/inside-the-sandbox) has what it is actually doing.
+
+<Warning>
+  **It never moves anything to Done, and never merges.** You decide done.
+</Warning>
+
+## Stop 6 · QA it yourself
+
+_Gate. You decide._
+
+```bash
+/qa-plan
+```
+
+It takes the run's commits and writes a numbered walkthrough as a Linear issue. Then you actually run the thing and follow the steps.
+
+File each finding while you are still looking at it, one issue per finding, labelled `needs-triage`. An hour later you will remember the symptom and not the state you were in. Triage sends the agent-safe ones back to `ready-for-agent` and the runner picks them up on the next pass.
+
+Close the QA plan when you finish walking it, even with findings still open. A stale plan sitting in the backlog reads to the next agent as the source of truth.
+
+### This is where the real bugs are
+
+Grilling produces agreement. Tickets produce code. Review reads a diff. None of them run the thing.
+
+A thorough grilling session still ships edge cases that only surface when you click. Directory created, `git init` failed, database and filesystem now disagree. No amount of spec work finds that, and skipping this stop is how a spec-to-code pipeline quietly produces confident wrong software.
+
+## What the route does not change
+
+The six stops are the same for every product. What varies is how much of stop 2 exists, which command goes red, and whether an agent can be trusted alone with the work.
+
+See [Product paths](/route/product-paths) for the four shapes and what each one drops.

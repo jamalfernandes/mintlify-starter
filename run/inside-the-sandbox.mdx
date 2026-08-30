@@ -1,0 +1,86 @@
+---
+title: "Inside the sandbox"
+description: "What the five pieces are and what one iteration does, so that when something breaks you can tell which piece broke."
+icon: "cube"
+---
+
+You need this page only when something goes wrong. But when something does go wrong, knowing which of the five pieces broke is the whole game.
+
+## Docker, in plain terms
+
+Docker runs a tiny separate computer on your Mac. It has its own filesystem, its own users, and it cannot see your files unless you explicitly hand them over.
+
+Two words you need.
+
+**An image** is a frozen template. Yours is `sandcastle:node22` and contains Linux, Node, git, the GitHub CLI and the Claude command. You built it once with `toolkit-image`. Think of it as an installed operating system, saved to disk, never running.
+
+**A container** is a running copy of an image. Started fresh for each AFK run and thrown away at the end. Anything written inside it disappears unless it was written to the folder shared with your Mac. Think of it as booting that saved system, using it, then deleting it.
+
+<Frame caption="One folder crosses the boundary, and it is a throwaway checkout rather than your real repo. That is the whole security model: the agent edits code and cannot reach anything else you own.">
+  ![](/images/running-the-loop-3.svg)
+</Frame>
+
+## The five pieces
+
+When a run misbehaves it is one of these. Knowing which saves you an hour.
+
+| Piece | What it is | Where it lives |
+| --- | --- | --- |
+| Docker | Runs the container. If it is not running, nothing else happens | Docker Desktop |
+| The image | The frozen template with your tools in it. Built once per machine | `sandcastle:node22` |
+| sandcastle | The orchestrator. Makes the worktree, starts the container, runs the agent, collects the commits, cleans up | `.sandcastle/main.mts` |
+| The prompt | What the agent is told at the start of every iteration | `.sandcastle/prompt.md` |
+| linear | How the agent reads and updates the backlog. Travels inside the worktree | `.sandcastle/bin/linear` |
+
+## What one iteration does, in order
+
+Every step below happens on every iteration. When a run stops early, it stopped at one of these.
+
+<Frame caption="Steps 4 and 5 are the two that talk to the outside world, so they are where almost every failure lands.">
+  ![](/images/running-the-loop-4.svg)
+</Frame>
+
+## Telling good from bad
+
+### A healthy run
+
+The backlog prints at the top with real ticket numbers. The agent names one ticket and moves it to `In Progress` in Linear. Real test output scrolls past, not a summary of it. One commit appears. The ticket lands in `In Review` with a comment. Several minutes to half an hour, end to end.
+
+### The one failure that looks like success
+
+If the image is missing something your tests need, the agent cannot run them, has no way to know that, and will tell you the tests passed. It then commits and closes the ticket.
+
+<Warning>
+  **On the first run in any repo, watch for actual test output.** Not the agent's summary of it. If you never see your test runner's own words scroll past, stop the run.
+</Warning>
+
+## Quick symptom table
+
+For anything not here, or anything that needs more than a line, go to [When it breaks](/fixes/index).
+
+| What you see | What it means | Fix |
+| --- | --- | --- |
+| Usage screen about socket files and `buffertools` | You ran `npx sandcastle`, which fetched an unrelated package of the same name off the internet | `toolkit-image`, or `npm run afk` |
+| `Cannot connect to the Docker daemon` | Docker Desktop is not running | `open -a Docker` |
+| `image sandcastle:node22 not found` | Never built on this machine. Images do not sync between your two Macs | `toolkit-image` |
+| Backlog prints empty, but Linear has tickets | Either nothing is labelled `ready-for-agent`, or everything is blocked by tickets that are not Done | `linear ready --project "X"` |
+| `Linear rejected the API key` | The key is missing from `.sandcastle/.env`, or lost a character when pasted | `cp ~/.config/toolkit/afk.env .sandcastle/.env` |
+| Agent exits immediately, no error | Almost always the Claude token. Authentication failure looks like a silent exit rather than a message | `claude setup-token`, then re-run `setup-machine.sh` |
+| Run dies after about 15 quiet minutes | The idle timeout. A slow test suite that prints nothing is indistinguishable from a hung agent | Raise `idleTimeoutSeconds`, or make tests verbose |
+| Files owned by someone else, git complains | The image was built with the wrong user id | `toolkit-image --check` |
+| Ticket went back to `Todo` with `needs-info` | **Working correctly.** The agent found the ticket ambiguous and stopped rather than guessing | Read its comment, sharpen the ticket |
+| Agent finished but the run hangs a minute | **Harmless.** A leftover process is holding the output open. It force-finishes after 60 seconds | Ignore unless it happens every run |
+| Nothing was pushed to GitHub | **Correct.** The agent is forbidden from pushing. Commits sit on a local branch | `git log -p afk/<branch>` |
+
+## Checking things by hand
+
+```bash
+docker info                        # is Docker awake
+toolkit-image --check              # does the image exist, right user id
+linear ready --project "MyApi"     # does the backlog work from your Mac
+toolkit-link --check               # are this repo's skills linked
+```
+
+<Tip>
+  Use `sh -c`, not `sh -lc`. A login shell resets the PATH and will tell you tools are missing when they are not.
+</Tip>

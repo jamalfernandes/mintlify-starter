@@ -2,7 +2,7 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "JF Labs Workflow",
-  "description": "How the AFK build workflow works, how to run it, and what to do when it breaks.",
+  "description": "One route from a loose idea to shipped code, run by one person with agents on the night shift. How it works, how to run it, and what to do when it breaks.",
   "colors": {
     "primary": "#1E6473",
     "light": "#6FB3C2",
@@ -25,7 +25,10 @@
           {
             "group": "The route",
             "pages": [
-              "reference/build-track"
+              "route/index",
+              "route/product-paths",
+              "route/sandbox",
+              "route/skills"
             ]
           },
           {
@@ -39,7 +42,8 @@
             "group": "Run it",
             "pages": [
               "run-a-ticket",
-              "reference/running-the-loop"
+              "run/inside-the-sandbox",
+              "run/commands"
             ]
           }
         ]
@@ -69,7 +73,8 @@
             "group": "History",
             "pages": [
               "history/changelog",
-              "history/versions"
+              "history/versions",
+              "history/status"
             ]
           }
         ]
@@ -80,5 +85,17 @@
     "socials": {
       "github": "https://github.com/jamalfernandes"
     }
-  }
+  },
+  "redirects": [
+    {
+      "source": "/reference/build-track",
+      "destination": "/route/index",
+      "permanent": true
+    },
+    {
+      "source": "/reference/running-the-loop",
+      "destination": "/run/inside-the-sandbox",
+      "permanent": true
+    }
+  ]
 }
