@@ -42,6 +42,7 @@
             "group": "Run it",
             "pages": [
               "run-a-ticket",
+              "run/reading-a-run",
               "run/inside-the-sandbox",
               "run/commands"
             ]
