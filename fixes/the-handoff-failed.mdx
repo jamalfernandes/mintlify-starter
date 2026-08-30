@@ -49,6 +49,56 @@ Real timings from JFL-173: agent set In Review at `15:46:38`, PR opened at `15:4
 
 ---
 
+## A multi-iteration run attaches only the last ticket
+
+**Seen:** `--max 5` took three tickets, made three commits, pushed one branch and opened **one** pull request. GitHub titled it after the last commit, so PR #11 read `JFL-117` while carrying JFL-133 and JFL-136 as well.
+
+```bash
+gh pr view 11 --json commits --jq '[.commits[].messageHeadline]'
+```
+
+**Actually wrong:** nothing, exactly. The handoff runs once per _run_, not once per _iteration_. Each ticket gets its `linear review` comment from inside the container as it finishes, so all three reach `In Review` correctly — but only the last one is ever offered to `linear attach`. The earlier tickets are reviewable and have no link to the code.
+
+**What it costs you:** reviewing "the PR for JFL-117" is reviewing three tickets against one diff. Read it per commit instead, and attach the others by hand:
+
+```bash
+linear attach JFL-133 <pr-url> --title "<subject>"
+linear attach JFL-136 <pr-url> --title "<subject>"
+```
+
+<Note>
+  Worth deciding deliberately rather than by accident: `--max 1` gives one ticket per PR and a clean review, at the cost of re-running. Higher `--max` gets more done per night and hands you a bundle. See [Reading a run](/run/reading-a-run).
+</Note>
+
+---
+
+## `linear attach` failed but the push and the PR succeeded
+
+**Seen:** the run's last four lines, after three good iterations.
+
+```text
+pull request https://github.com/jamalfernandes/cffd-api/pull/11
+Could not open the PR: Command failed: linear attach JFL-117 …
+The commits are safe on afk/1788092037916. Push and open it by hand.
+Could not groom the board; run `linear groom` by hand.
+```
+
+**Not the missing-key case.** `git push` and `gh pr create` both ran — the PR exists. So the shell was not keyless in the way the entry below describes, and the cause here is not established. `linear groom` failing in the same run points at the Linear CLI specifically rather than at credentials generally.
+
+**Recover it by hand.** The commits and the PR are fine; only the link is missing.
+
+```bash
+linear attach JFL-117 https://github.com/jamalfernandes/cffd-api/pull/11 \
+  --title "JFL-117: refuse a non-integer amount rather than print a malformed figure"
+linear groom
+```
+
+<Warning>
+  The message says "Push and open it by hand", which is misleading in this case — both had already happened. Check whether the PR exists before you act on that sentence.
+</Warning>
+
+---
+
 ## "Could not groom the board"
 
 **Actually wrong:** `linear groom` runs on the **host**, not in the container, so it needs `LINEAR_API_KEY` in your shell. The container has its own copy from `.sandcastle/.env`, which is why everything inside the run worked.

@@ -8,11 +8,15 @@ icon: "clock-rotate-left"
 
 ### How to read a run, and the fact that nothing else is reading it
 
-[Reading a run](/run/reading-a-run) is a new page, worked through a real `JFL-88` run on CFFD API. The point it exists to make: every test command in that run was piped through `tail -8`, so the agent saw eight lines, and the transcript shows you its summary of those eight lines. No test name appears anywhere.
+[Reading a run](/run/reading-a-run) is a new page, worked through a real three-iteration run on CFFD API — JFL-133, JFL-136, JFL-117, all green, both self-review axes satisfied. The point is that a good run still needs reading, and this one ends with `linear attach` failing on its last line.
 
-Writing it turned up something worth its own line. **CFFD API has no `.github/workflows`.** No CI re-runs the suite when a PR opens, so there is no red tick to be missing — which makes checking by hand the only time those tests run anywhere but the machine that wrote them.
+Two structural things it records. A multi-iteration run produces **one branch, one pull request, several tickets**, and GitHub titles the PR after the last commit — so PR #11 reads `JFL-117` and carries three. And **CFFD API has no `.github/workflows`**, so nothing re-runs the suite when the PR opens and there is no red tick to be missing.
 
-Also recorded: a "red" that was only a missing-module error proves nothing about the assertions, and `backlog is dry` after one of twenty iterations means _nothing eligible_, not _nothing left_.
+Also recorded: a filtered `-t` red is real evidence where a missing-module red is not; the self-review found a test whose comment claimed more than its assertion proved, and the agent fixed the comment rather than the assertion; and one acceptance criterion went unverified because the veraPDF step it named had been dropped in an earlier slice and never replaced.
+
+### Two more entries in the fix log
+
+Both on [the handoff](/fixes/the-handoff-failed), from that same run: the one-PR-per-run behaviour above, and an `attach` failure that is **not** the keyless-shell case, since the push and the PR both succeeded.
 
 ### The docs repo is `mintlify-starter`, and `workflow-docs` is archived
 
