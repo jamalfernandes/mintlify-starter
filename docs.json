@@ -59,6 +59,7 @@
               "fixes/the-run-wont-start",
               "fixes/the-agent-did-nothing",
               "fixes/the-handoff-failed",
+              "fixes/the-pr-shows-a-failing-build",
               "fixes/an-existing-repo",
               "fixes/drift"
             ]
