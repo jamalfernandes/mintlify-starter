@@ -1,0 +1,56 @@
+---
+title: "What is real"
+description: "Which parts have actually run, which are written but unproven, and when each row was last checked."
+icon: "list-check"
+---
+
+This is a snapshot, not a specification. Every row carries the date it was last checked, because the difference between built and proven is what rots fastest here.
+
+<Warning>
+  **A row saying Proven means it ran, not that it is guaranteed.** The runner's flags have already changed once and three documents carried the old answer for a week. When a row and the [changelog](/history/changelog) disagree, the changelog is newer.
+</Warning>
+
+## Proven end to end
+
+| Piece | Evidence | Checked |
+| --- | --- | --- |
+| A full AFK iteration | `boost33-hub` and `boost33-identity` scaffolded, gated and proven end to end. Each took a real ticket from `Todo` to a reviewed pull request | 28 Aug 2026 |
+| `linear start` · `review` · `attach` | Exercised by those runs. Tickets moved and pull requests linked | 28 Aug 2026 |
+| Skills inside the container | 33 core, 65 after linking, measured in `boost33-identity`. Before this fix an AFK agent had none at all | 28 Aug 2026 |
+| `/new-project` | Ran end to end on CFFD API. Repo from template, Linear project, Nostos entry, skillsets pruned to shape, `toolkit-link` linked 20 project skills, phases 0 to 3 grilled into artefacts | 27 Aug 2026 |
+| `toolkit-link` | Linked 20, and pruned correctly on a second run after `.claude/skillsets` was cut | 27 Aug 2026 |
+| `linear project-create` | Created the CFFD API project in team JFL | 27 Aug 2026 |
+| Adopting a repo with history | `boostledger` and `boostscore`, both with years behind them, joined and ran | 28 Aug 2026 |
+
+## Built, not yet exercised
+
+| Piece | State | Checked |
+| --- | --- | --- |
+| `/qa-plan` | Written, never run. It is a skill, not yet a habit | 30 Aug 2026 |
+| Version numbers | Nothing carries one. See [Versions](/history/versions) for the proposal and why it matters | 30 Aug 2026 |
+| Vault retirement | Not started. Inboxes, `Home.md` and `Decisions.md` still live | 30 Aug 2026 |
+
+## Repos on the workflow
+
+| Repo | Linear project | Joined |
+| --- | --- | --- |
+| `boost33-hub` | Boost33 Hub | 28 Aug 2026 |
+| `boost33-identity` | Boost33 Identity | 28 Aug 2026 |
+| `boostledger` | Boost33 Ledger and Wallet | 28 Aug 2026 |
+| `boostscore` | Boost33 Score | 28 Aug 2026 |
+| `boost33-elite-content-forge` | Boost33 Voice | 30 Aug 2026 |
+| `cffd-api` | CFFD API | 27 Aug 2026 |
+
+## What to do next
+
+**Run the loop on CFFD API.** Every other repo on the list is a Boost33 product. CFFD is the only API among them, and an API is the best AFK candidate there is: one seam, deterministic assertions, no visual judgement anywhere in the loop.
+
+Its `docs/build-order.md` holds nine vertical slices ready to become tickets, and slice 1 has no blockers.
+
+## Then retire the second copies
+
+**Two runners exist.** `afk-runner/afk.mjs` on the host, and `toolkit/sandcastle/main.mts` in a container. The second supersedes the first.
+
+**The vault still holds** a portfolio dashboard, a decision record and a message bus that Linear and Nostos already provide.
+
+Both are the same failure this whole system exists to prevent: one fact, two homes, and within a week one of them is lying.

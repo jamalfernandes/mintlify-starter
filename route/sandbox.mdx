@@ -1,0 +1,38 @@
+---
+title: "Choosing a sandbox"
+description: "What the agent is allowed to touch while you are not watching, and why the answer depends on the toolchain."
+icon: "box"
+---
+
+The runner works with no sandbox at all, meaning the agent runs as you with your permissions. That is fine while you watch it, and stops being fine the moment you walk away, which is the entire point of AFK.
+
+| Option | Isolation | Works for | Cost | Verdict |
+| --- | --- | --- | --- | --- |
+| Docker | Real. Linux container, one worktree mounted, nothing else of yours | Node, Python, Go, Rust, static sites, anything that builds on Linux | Built. `sandcastle:node22` | **Ready** |
+| Extract the core | Inherits Docker's, for the part that moves | Any project whose testable logic is platform-independent | One ticket, and it improves the codebase | **Do first** |
+| macOS user account | Real. Separate home, separate keychain, no access to yours | iOS and macOS targets, simulator tests | An afternoon. Simulators are per-user | **Practical** |
+| Tart VM | Strongest. Disposable macOS guest per run | Anything Apple, including signed device builds | A weekend, plus 60 GB per image | **Later** |
+| CI macOS runner | Strong. Ephemeral, nothing on your machine | Anything Apple, on a schedule | Ten times Linux minutes, six hour job cap | **Situational** |
+| No sandbox | None. Agent runs as you | Everything, unfortunately | Zero | **Watched runs only** |
+
+## Extract the core is the general move, not a Swift trick
+
+The work you can safely hand to an unattended agent is almost exactly the work that does not need the platform toolchain. Domain logic, entitlement state, pricing rules, scheduling, conflict resolution. In every product type that layer is, or should be, free of the framework around it.
+
+Refrain proves the point rather than being an exception to it. `app/Refrain/Sources/Domain/` holds the resurface engine and the domain constants, and between them they import Foundation and nothing else. That compiles and tests on Linux today. Six of its twelve test files import SwiftUI or UIKit, and none of them belong in that package.
+
+So the split falls along a line that already exists. Pull the core into its own package, point Docker at it, and the half of the work worth automating becomes automatable. The other half was always going to need your eyes.
+
+<Warning>
+  **The failure this prevents is worse than no automation.** An agent whose test command silently cannot run will report the tests as passing, because it has no way to know otherwise. It then commits and closes the ticket.
+
+  On the first watched run in any repo, look for real test output in the log rather than the agent's summary of it. That single check catches most of what goes wrong with a new image.
+</Warning>
+
+## Where Linear meets the container
+
+Inside a container the agent inherits none of your MCP config, and the Linear server authenticates over OAuth in a browser a container does not have.
+
+So Linear lives on the host. The runner picks the eligible issue, injects it into the prompt, and updates the issue afterwards. The container implements and never sees a credential.
+
+Three things fall out of that. Selection becomes deterministic rather than something the agent might get wrong, the prompt loses about a third of its length, and the run survives Linear being down mid-iteration.

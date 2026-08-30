@@ -1,52 +1,76 @@
 ---
 title: "Overview"
-description: "Tickets in Linear, an agent that works one at a time in a container, and a pull request at the end."
+description: "One route from a loose idea to shipped code, run by one person with agents on the night shift."
 icon: "house"
 ---
 
 ## What this is
 
-You write a ticket in Linear. You run one command. An agent picks the ticket up,
-works in a container that can see nothing of yours except one copy of the repo,
-runs the repo's own checks, commits, and opens a pull request.
+A single route a product travels, from a sentence you said out loud to code merged in a repo. Six stops. You are at every one of them, but you are not doing all of the work at every one.
 
-It never merges. **You decide what is done.**
+The idea underneath it is simple. You are one person, and your thinking time and a machine's building time do not have to be the same hours. You grill product A into a spec while a container drains product B's backlog. The two lanes never wait for each other, and that is the whole reason this exists.
 
 <Note>
-This site is the reference for that system. It is private, and it is written for
-you and for Claude to read mid-task — not as an introduction for anyone else.
+  This site is the reference for that system. It is private, and it is written for you and for Claude to read mid-task, not as an introduction for anyone else.
 </Note>
 
-## The one command
+## The route
 
-```bash
-cd ~/conductor/repos/<repo>
-npm run afk
-```
+Two of the six stops are gates, where you decide and nothing proceeds without you. The last two repeat for the life of the product.
 
-That is the whole thing. Everything else on this site is either setting that up
-once, or working out why it did not do what you expected.
+<Steps>
+  <Step title="Start the project">
+    `/new-project` scaffolds the repo, the Linear project and the Nostos entry, then interviews you about concept, research, architecture and data model. The interview is the output. The folders are a side effect.
+  </Step>
+  <Step title="Design the screens">
+    Information architecture, design system, every screen in both themes, motion. Run as Playbook prompts rather than as an interview, because the output is an artefact and not an argument. An API skips this entirely.
+  </Step>
+  <Step title="Pass the build-ready gate">
+    **You decide.** Ten checks, and what it produces is not a tick list but your first published spec.
+  </Step>
+  <Step title="Grill one feature">
+    `/grill-with-docs`, then `/to-spec`, then `/to-tickets`, all in one window. Terms land in `CONTEXT.md` and decisions land in `docs/adr/` as they resolve.
+  </Step>
+  <Step title="Let the agent build">
+    `npm run afk`. One ticket per iteration, in a container that can see one copy of the repo and nothing else of yours. It commits and opens a pull request. It never merges.
+  </Step>
+  <Step title="QA it yourself">
+    **You decide.** `/qa-plan` turns the run's commits into a numbered walkthrough. You click through the thing. Findings become tickets and re-enter at stop 4.
+  </Step>
+</Steps>
+
+[The route in full](/route/index) has what each stop produces, what it costs, and where each one goes wrong.
+
+## Why the gates are where they are
+
+An agent can write code, run tests, read a diff and file a pull request. It cannot tell you the hero section reads wrong, and it cannot tell you that a folder was created while `git init` failed so the disk and the database now disagree.
+
+So the two gates sit exactly where judgement is the scarce thing: before the build starts, and after it produces something you can click. Everything between them is delegable, which is why that stretch is the part that runs while you sleep.
+
+<Warning>
+  **An agent never sets an issue to Done, and never merges.** It stops at `In Review`. That boundary is the entire safety model, and nothing else on this site is load-bearing in the same way.
+</Warning>
 
 ## Where things live
 
-| | |
+|  |  |
 | --- | --- |
-| **Tickets** | Linear, one project per repo |
-| **The machinery** | `~/DevProj/toolkit` — identical everywhere, never edited per project |
-| **Per-project files** | The starter repos, copied in and then owned by the repo |
+| **What gets Tuesday** | Nostos. The only place that sees a client deadline against a side project |
+| **Tickets** | Linear, one project per repo. The backlog the runner drains |
+| **The machinery** | `~/DevProj/toolkit`, identical everywhere, never edited per project |
+| **Per-project files** | The starters, copied in once and then owned by the repo |
 | **This site** | `jamalfernandes/workflow-docs` |
 
-The split is the filing rule: **if a file is meant to be edited by a project it
-belongs in a starter, and if editing it in one project would be a bug it belongs
-in the toolkit.**
+Two rules settle every boundary question this raises.
+
+**A ticket that appears in Nostos is double entry**, and within a week one of the two copies is lying. Nostos schedules the shift; Linear holds the shift's work.
+
+**If a file is meant to be edited by a project it belongs in a starter, and if editing it in one project would be a bug it belongs in the toolkit.** That is the whole filing rule.
 
 ## If something is wrong
 
-Go straight to [When it breaks](/fixes/index). Every entry there is a failure
-that actually happened, with what it looked like and what fixed it.
+Go to [When it breaks](/fixes/index). Every entry there is a failure that actually happened, with what it looked like on screen and what fixed it.
 
 <Warning>
-**Add to it when you solve something new.** The whole point is that the next
-session does not rediscover what this one already worked out. Several hours were
-lost today to a fix that existed in one project and never reached the others.
+  **Add to it when you solve something new.** Several hours went into a fix that already existed in one project and had never reached the others. That is the failure this section exists to stop, and it only works if you write in it.
 </Warning>

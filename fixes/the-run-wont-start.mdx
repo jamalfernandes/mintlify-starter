@@ -8,9 +8,7 @@ icon: "circle-xmark"
 
 **Seen:** `npm error path /Users/.../DevProj/toolkit/package.json`
 
-**Actually wrong:** you ran `npm run afk` from the toolkit. The `afk` script
-lives in the **repo**. The toolkit is shared machinery and deliberately has no
-`package.json`.
+**Actually wrong:** you ran `npm run afk` from the toolkit. The `afk` script lives in the **repo**. The toolkit is shared machinery and deliberately has no `package.json`.
 
 **Fix:** `cd` into the repo first.
 
@@ -38,10 +36,7 @@ lives in the **repo**. The toolkit is shared machinery and deliberately has no
 
 **Seen:** the run dies at **Expanding shell expressions**.
 
-**Actually wrong:** `$LINEAR_PROJECT` expanded to empty **inside the container**.
-The prompt's `linear ready --project "$LINEAR_PROJECT"` is expanded by
-`sandbox.exec` before the agent starts, and that exec only sees the environment
-the container was *launched* with — the sandbox provider's, not the run-level one.
+**Actually wrong:** `$LINEAR_PROJECT` expanded to empty **inside the container**. The prompt's `linear ready --project "$LINEAR_PROJECT"` is expanded by `sandbox.exec` before the agent starts, and that exec only sees the environment the container was _launched_ with, meaning the sandbox provider's rather than the run-level one.
 
 **Fix:** in `.sandcastle/main.mts`, set it in both places:
 
@@ -53,33 +48,28 @@ sandbox: docker({
 env: { LINEAR_PROJECT: project },
 ```
 
-**Confirmed fixed when:** the run prints
-`linear ready --project "$LINEAR_PROJECT" → ~N tokens`.
+**Confirmed fixed when:** the run prints `linear ready --project "$LINEAR_PROJECT" → ~N tokens`.
 
 <Note>
-A repo scaffolded from a stale copy of the starter will be missing this. It is
-the single most likely reason a brand-new repo's first run dies.
+  A repo scaffolded from a stale copy of the starter will be missing this. It is the single most likely reason a brand-new repo's first run dies.
 </Note>
 
 ---
 
 ## `error: no 'linear' MCP server at user scope`
 
-**Actually wrong:** either it is not registered, or it is registered under a
-different name or scope. The runner checks `~/.claude.json` for exactly
-`mcpServers.linear`.
+**Actually wrong:** either it is not registered, or it is registered under a different name or scope. The runner checks `~/.claude.json` for exactly `mcpServers.linear`.
 
 **Fix:**
+
 ```bash
 claude mcp add -s user --transport http linear https://mcp.linear.app/mcp
 ```
+
 Then authenticate with `/mcp`.
 
 <Warning>
-**Registered is not connected.** A server that exists but was never
-authenticated passes the check and then fails once the agent tries to read the
-backlog. `claude mcp list` must say **✔ Connected**.
+  **Registered is not connected.** A server that exists but was never authenticated passes the check and then fails once the agent tries to read the backlog. `claude mcp list` must say **✔ Connected**.
 
-If you have two entries pointing at the same URL, remove the directory-scoped
-one: `claude mcp remove <name> -s local`.
+  If you have two entries pointing at the same URL, remove the directory-scoped one: `claude mcp remove <name> -s local`.
 </Warning>

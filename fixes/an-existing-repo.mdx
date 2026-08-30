@@ -4,19 +4,13 @@ description: "A repo with years of history behind it fails differently from a fr
 icon: "box-archive"
 ---
 
-A new project from `starter-web` starts clean. An existing repo does not, and the
-problems below are the ones that have actually turned up. None of them are worth
-changing the starter over, because a fresh repo never has them.
+A new project from `starter-web` starts clean. An existing repo does not, and the problems below are the ones that have actually turned up. None of them are worth changing the starter over, because a fresh repo never has them.
 
 ## The local checkout is a long way behind
 
-**Seen:** the repo has one commit and a README. You conclude the project has not
-really started, and scaffold onto what is there.
+**Seen:** the repo has one commit and a README. You conclude the project has not really started, and scaffold onto what is there.
 
-**Actually wrong:** `boostledger` on 28 August looked exactly like that. It was
-**150 commits behind `origin/main`**, sitting on the initial commit, while the
-real repo had a live API, a wallet UI and 128 tests. Scaffolding onto it would
-have produced a branch that deleted the entire product.
+**Actually wrong:** `boostledger` on 28 August looked exactly like that. It was **150 commits behind `origin/main`**, sitting on the initial commit, while the real repo had a live API, a wallet UI and 128 tests. Scaffolding onto it would have produced a branch that deleted the entire product.
 
 **Fix:** before touching anything, fetch and compare.
 
@@ -26,25 +20,17 @@ git rev-list --left-right --count origin/main...HEAD   # left = behind, right = 
 git merge --ff-only origin/main
 ```
 
-**How to tell:** the count reads `0	0`. Read the two numbers in the right order:
-left is behind, right is ahead, and getting that backwards produces a confident
-report of the opposite of the truth.
+**How to tell:** the count reads `0	0`. Read the two numbers in the right order: left is behind, right is ahead, and getting that backwards produces a confident report of the opposite of the truth.
 
 ## Lint has never run here
 
-**Seen:** you add `eslint .`, run it for the first time, and get double-digit
-errors in code that has been in production for weeks.
+**Seen:** you add `eslint .`, run it for the first time, and get double-digit errors in code that has been in production for weeks.
 
-**Actually wrong:** nothing new broke. Next 16 removed `next lint`, and a repo
-that still has `"lint": "next lint"` has been exiting 0 without linting anything.
-A repo with no lint script at all has simply never been checked.
+**Actually wrong:** nothing new broke. Next 16 removed `next lint`, and a repo that still has `"lint": "next lint"` has been exiting 0 without linting anything. A repo with no lint script at all has simply never been checked.
 
-This matters more than it looks, because the AFK loop gates commits on the repo's
-own checks. Leave lint red and every future run sees a failure that is not its
-fault, then either tries to fix unrelated code or stops.
+This matters more than it looks, because the AFK loop gates commits on the repo's own checks. Leave lint red and every future run sees a failure that is not its fault, then either tries to fix unrelated code or stops.
 
-**Fix:** sort the findings into four piles rather than fixing them all. From
-`boostledger`, which had nine:
+**Fix:** sort the findings into four piles rather than fixing them all. From `boostledger`, which had nine:
 
 | Pile | What to do | Count |
 | --- | --- | --- |
@@ -53,58 +39,43 @@ fault, then either tries to fix unrelated code or stops.
 | A real bug in live code | File it, suppress inline, point the comment at the ticket | 1 |
 | Anything you are unsure about | File it. Do not guess in a scaffolding commit | 0 |
 
-The third pile is the one people get wrong. A lint error in live checkout code is
-a real finding, and fixing it in passing buries a behaviour change inside a
-commit nobody will read for it.
+The third pile is the one people get wrong. A lint error in live checkout code is a real finding, and fixing it in passing buries a behaviour change inside a commit nobody will read for it.
 
-**How to tell:** `npm run lint` exits 0, and every suppression in the repo names a
-ticket.
+**How to tell:** `npm run lint` exits 0, and every suppression in the repo names a ticket.
 
 ## Lint does not fail, it asks you a question
 
-**Seen:** the AFK run reaches the lint step and simply stops. No error, no failure,
-nothing in the log after it. Eventually the idle timeout kills it.
+**Seen:** the AFK run reaches the lint step and simply stops. No error, no failure, nothing in the log after it. Eventually the idle timeout kills it.
 
-**Actually wrong:** the repo is on Next 15 with `"lint": "next lint"` and no eslint
-config. `next lint` is deprecated there, and with nothing configured it does not
-exit — it prints a deprecation notice and then opens an **interactive menu** asking
-how you would like to configure ESLint. There is nobody in the container to answer.
+**Actually wrong:** the repo is on Next 15 with `"lint": "next lint"` and no eslint config. `next lint` is deprecated there, and with nothing configured it does not exit. It prints a deprecation notice and then opens an **interactive menu** asking how you would like to configure ESLint. There is nobody in the container to answer.
 
-This is worse than a red check. A failing lint stops the run and tells you why; a
-prompt makes the agent look hung.
+This is worse than a red check. A failing lint stops the run and tells you why; a prompt makes the agent look hung.
 
 **Fix:** replace it with `eslint .` and a flat config before the first AFK run.
 
-**How to tell:** `npm run lint </dev/null` completes. If it hangs on empty stdin,
-it is waiting for an answer.
+**How to tell:** `npm run lint </dev/null` completes. If it hangs on empty stdin, it is waiting for an answer.
 
 ### On Next 16 it fails, but not in a way that mentions lint
 
-Next 16 removed the command outright. It does not say so. It reads the word `lint`
-as a directory argument and reports:
+Next 16 removed the command outright. It does not say so. It reads the word `lint` as a directory argument and reports:
 
-```
+```text
 Invalid project directory provided, no such directory: /path/to/repo/lint
 ```
 
-which looks like a broken path and sends you looking in the wrong place. Same fix,
-same reason. Three versions, three behaviours: Next 14 lints, Next 15 prompts,
-Next 16 hunts for a directory called `lint`.
+which looks like a broken path and sends you looking in the wrong place. Same fix, same reason. Three versions, three behaviours: Next 14 lints, Next 15 prompts, Next 16 hunts for a directory called `lint`.
 
 ## The Next 15 flat config is not the Next 16 one
 
 **Seen:**
 
-```
+```text
 ESLint: Config at index 5 has an 'extends' array that contains a string
 ("plugin:@next/next/recommended"). This is a feature of eslint's defineConfig()
 and is not supported by typescript-eslint.
 ```
 
-**Actually wrong:** you copied a working `eslint.config.mjs` from a Next 16 repo.
-In Next 16, `next.configs["core-web-vitals"]` is a real flat config and spreads
-straight in. In Next 15 it is still eslintrc-style and carries a string in
-`extends`, which `typescript-eslint`'s `config()` rejects outright.
+**Actually wrong:** you copied a working `eslint.config.mjs` from a Next 16 repo. In Next 16, `next.configs["core-web-vitals"]` is a real flat config and spreads straight in. In Next 15 it is still eslintrc-style and carries a string in `extends`, which `typescript-eslint`'s `config()` rejects outright.
 
 **Fix:** on Next 15, register the plugin and merge its rules by hand.
 
@@ -118,21 +89,15 @@ straight in. In Next 15 it is still eslintrc-style and carries a string in
 }
 ```
 
-**How to tell:** `npm run lint` reports lint findings rather than a config error.
-Collapse this back to a one-line spread when the repo moves to Next 16.
+**How to tell:** `npm run lint` reports lint findings rather than a config error. Collapse this back to a one-line spread when the repo moves to Next 16.
 
 ## Typecheck passes for you and fails in the container
 
-**Seen:** `npm run typecheck` is clean on your Mac. The same command in the sandbox
-fails with a handful of `TS2307: Cannot find module '…/something.png'`.
+**Seen:** `npm run typecheck` is clean on your Mac. The same command in the sandbox fails with a handful of `TS2307: Cannot find module '…/something.png'`.
 
-**Actually wrong:** nothing to do with the container. What makes image imports
-typecheck is `next/image-types/global`, referenced from `next-env.d.ts` — and that
-file is generated by `next build` and gitignored, which is Next's own convention.
+**Actually wrong:** nothing to do with the container. What makes image imports typecheck is `next/image-types/global`, referenced from `next-env.d.ts`, and that file is generated by `next build` and gitignored, which is Next's own convention.
 
-Your machine has built before, so the file is there. A clean checkout has not, so
-it is not. That means typecheck was broken on every fresh clone and every CI job
-that checks before building; the container is just the first thing that told you.
+Your machine has built before, so the file is there. A clean checkout has not, so it is not. That means typecheck was broken on every fresh clone and every CI job that checks before building; the container is just the first thing that told you.
 
 **Fix:** reference the types from a file that is actually committed.
 
@@ -141,22 +106,15 @@ that checks before building; the container is just the first thing that told you
 /// <reference types="next/image-types/global" />
 ```
 
-**How to tell:** `rm next-env.d.ts && npm run typecheck` is clean. If it is not,
-your green typecheck depends on a file nobody else has.
+**How to tell:** `rm next-env.d.ts && npm run typecheck` is clean. If it is not, your green typecheck depends on a file nobody else has.
 
 ## The repo already has skills, committed into it
 
-**Seen:** the repo has a `.claude/skills/` directory with real content in it,
-tracked by git, and you are about to add `.claude/skillsets` next to it.
+**Seen:** the repo has a `.claude/skills/` directory with real content in it, tracked by git, and you are about to add `.claude/skillsets` next to it.
 
-**Actually wrong:** nothing yet, but adding the second mechanism is the mistake.
-Claude Code reads project-scope skills from `.claude/skills/` and user-scope ones
-from `~/.claude/skills`, and the container links the toolkit's into the second. Any
-skill present in both is then described twice in every context window, which is
-the exact cost the toolkit is arranged to avoid.
+**Actually wrong:** nothing yet, but adding the second mechanism is the mistake. Claude Code reads project-scope skills from `.claude/skills/` and user-scope ones from `~/.claude/skills`, and the container links the toolkit's into the second. Any skill present in both is then described twice in every context window, which is the exact cost the toolkit is arranged to avoid.
 
-Voice had 34 vendored skills and 32 of them were already in the toolkit by the
-same name.
+Voice had 34 vendored skills and 32 of them were already in the toolkit by the same name.
 
 **Fix:** check the overlap before deciding anything.
 
@@ -164,27 +122,19 @@ same name.
 comm -12 <(ls .claude/skills | sort) <(ls ~/DevProj/toolkit/skills | sort)
 ```
 
-Adopt the ones that exist only in the repo into the toolkit first, so that nothing
-is lost, then delete the vendored directory and declare `.claude/skillsets`. A
-skill that is not project-specific belongs in the toolkit; that is the same filing
-rule as everything else.
+Adopt the ones that exist only in the repo into the toolkit first, so that nothing is lost, then delete the vendored directory and declare `.claude/skillsets`. A skill that is not project-specific belongs in the toolkit; that is the same filing rule as everything else.
 
-**How to tell:** `comm -12` prints nothing, and the repo has `skillsets` but no
-`skills/`.
+**How to tell:** `comm -12` prints nothing, and the repo has `skillsets` but no `skills/`.
 
 <Warning>
-Adopting skills into the toolkit means the sandbox image is stale until it is
-rebuilt, because the image bakes them at build time. Budget for that: it is a slow
-build, and it is worth starting before you need it rather than at the gate.
+  Adopting skills into the toolkit means the sandbox image is stale until it is rebuilt, because the image bakes them at build time. Budget for that: it is a slow build, and it is worth starting before you need it rather than at the gate.
 </Warning>
 
 ## .gitignore quietly ate the skillsets file
 
-**Seen:** the container links only the core skills. `.claude/skillsets` is right
-there in your working copy.
+**Seen:** the container links only the core skills. `.claude/skillsets` is right there in your working copy.
 
-**Actually wrong:** the repo ignores `.claude/` wholesale, so the file was never
-committed and the checkout the container mounts does not have it.
+**Actually wrong:** the repo ignores `.claude/` wholesale, so the file was never committed and the checkout the container mounts does not have it.
 
 **Fix:** ignore the symlinks, keep the declaration.
 
@@ -193,41 +143,27 @@ committed and the checkout the container mounts does not have it.
 !.claude/skillsets
 ```
 
-Watch the ordering when you re-include `.sandcastle/.env.example` too. `.gitignore`
-is last-match-wins, and a `.env*` rule further down the file will swallow the
-template again. Put the negation at the end.
+Watch the ordering when you re-include `.sandcastle/.env.example` too. `.gitignore` is last-match-wins, and a `.env*` rule further down the file will swallow the template again. Put the negation at the end.
 
-**How to tell:** `git check-ignore .claude/skillsets` finds nothing, and
-`git check-ignore .sandcastle/.env` finds a rule. Both matter, in opposite
-directions.
+**How to tell:** `git check-ignore .claude/skillsets` finds nothing, and `git check-ignore .sandcastle/.env` finds a rule. Both matter, in opposite directions.
 
 ## The suite is green because most of it did not run
 
 **Seen:** `101 passed`. Looks like a healthy repo.
 
-**Actually wrong:** it was `101 passed | 27 skipped`, and the 27 were the ones
-guarding token movement. They skip on `Boolean(process.env.DATABASE_URL)`, so with
-no database they vanish quietly. The rules they check are written in plpgsql, so a
-migration change can break all of them while the suite still prints green.
+**Actually wrong:** it was `101 passed | 27 skipped`, and the 27 were the ones guarding token movement. They skip on `Boolean(process.env.DATABASE_URL)`, so with no database they vanish quietly. The rules they check are written in plpgsql, so a migration change can break all of them while the suite still prints green.
 
-**Fix:** put the baseline in `CLAUDE.md` verbatim, including the skipped count, and
-say what the skipped ones cover and what an agent may not touch without a database.
+**Fix:** put the baseline in `CLAUDE.md` verbatim, including the skipped count, and say what the skipped ones cover and what an agent may not touch without a database.
 
-**How to tell:** the number in `CLAUDE.md` matches what `npm test` prints today. If
-it does not, one of them is lying and you do not yet know which.
+**How to tell:** the number in `CLAUDE.md` matches what `npm test` prints today. If it does not, one of them is lying and you do not yet know which.
 
 ## The host said green and the container disagreed
 
 **Seen:** lint and tests pass on your Mac. The container run fails on typecheck.
 
-**Actually wrong:** in the `boostledger` scaffold this was simply not running all
-three checks. Removing a dead constant also removed a destructured name that was
-used 70 lines further down. `npm test` and `npm run lint` both passed; only
-`tsc --noEmit` caught it, and it had not been run since the edit.
+**Actually wrong:** in the `boostledger` scaffold this was simply not running all three checks. Removing a dead constant also removed a destructured name that was used 70 lines further down. `npm test` and `npm run lint` both passed; only `tsc --noEmit` caught it, and it had not been run since the edit.
 
-**Fix:** run the gate in a throwaway worktree, never the working copy, because a
-Linux `npm install` against a mounted macOS directory replaces native binaries and
-breaks the host checkout.
+**Fix:** run the gate in a throwaway worktree, never the working copy, because a Linux `npm install` against a mounted macOS directory replaces native binaries and breaks the host checkout.
 
 ```bash
 git worktree add -q --detach /tmp/gate HEAD

@@ -1,0 +1,88 @@
+---
+title: "Every skill"
+description: "What each one is for and which stop it belongs to. Reach for this when you cannot remember the name."
+icon: "wand-magic-sparkles"
+---
+
+Most of the main flow is user-invocable only. An agent asking for `/to-spec` or `/grill-with-docs` is refused, deliberately: alignment is human-in-the-loop, and an agent that can start its own planning will.
+
+If you cannot remember which one fits, `/ask-matt` is the router.
+
+## The main flow
+
+| Skill | Stop | What it does |
+| --- | --- | --- |
+| `/new-project` | 1 | Scaffolds the repo, Linear project and EaglePoint entry, then grills phases 0 to 3 into a product spec |
+| `/grill-with-docs` | 4 | The interview, stateful. Writes `CONTEXT.md` and ADRs as terms and decisions resolve. Use whenever there is a repo under you |
+| `/grill-me` | any | The same interview, stateless. For a plan, a piece of writing, a decision with no code |
+| `/grilling` | any | The primitive underneath both. Works a design tree in rounds, asking the whole frontier at once with a recommendation attached to each question |
+| `/prototype` | 4 | Throwaway code answering one design question you cannot settle on paper. Kept on a `prototype/` branch and pointed at from the issue |
+| `/to-spec` | 3, 4 | Turns the thread into a spec and publishes it. No interview, just synthesis. Agrees the test seams with you first |
+| `/to-tickets` | 4 | Splits the spec into tracer-bullet slices with real blocking edges. Handles wide refactors as expand, migrate, contract |
+| `/implement` | 4 | Builds a ticket, driving `/tdd` internally, then closes out with `/code-review` before committing |
+| `/tdd` | 4 | Red, green, refactor, at the seams already agreed. Reach for it alone when you want one behaviour built test-first |
+| `/code-review` | 4 | Two axes in parallel: does it follow the repo's standards, and does it match what the issue asked for. Run in a fresh context |
+| `/qa-plan` | 6 | Turns a run's commits into a numbered walkthrough as an issue. Findings become issues |
+
+## On-ramps
+
+| Skill | What it does |
+| --- | --- |
+| `/triage` | For issues you did not write. Moves them through a state machine and produces agent-ready briefs. Never triage tickets `/to-tickets` made |
+| `/diagnosing-bugs` | The hard ones: the intermittent flake, the regression between two known-good states. Refuses to theorise until one command goes red on this bug |
+| `/wayfinder` | For an effort too foggy to hold in one session. Charts decision tickets, resolves them one at a time, hands off at `/to-spec`. Never for a well-scoped feature |
+
+## Design track
+
+Stops 2 and 5 of the Playbook phases, and the first two are also useful at stop 1.
+
+| Skill | Phase | What it does |
+| --- | --- | --- |
+| `market-research-reports` | 1 | Structured viability report, alongside `/research` running in the background |
+| `competitive-ads-extractor` | 1 | Mines competitor messaging and positioning. Useful again at launch copy |
+| `ux-researcher-designer` | 4 | IA, flows, states inventory. Where the reusable-element inventory is first recognised |
+| `ui-ux-pro-max` | 5, 6 | Design system and screen design in Paper |
+| `ui-design-system` | 5 | Token generation, component documentation, developer handoff |
+| `typography-expert` | 5 | Type scale and font pairing. The first thing to reach for on a marketing site |
+| `mobile-design` | 5, 6 | Touch targets, platform conventions, performance patterns. The native path only |
+| `drawio-skill` | 2 to 4 | ERD, nav map, user flows, system architecture |
+| `copywriting` | 5 | Page copy for anything with a marketing surface. Path A's main tool |
+| `think-tank` | 0 | Interrogates a concept brief. Largely superseded by grilling at phase 0, which produces alignment rather than a plan |
+
+## Engineering reference
+
+| Skill | Phase | What it does |
+| --- | --- | --- |
+| `senior-architect` | 2 | Stack decisions, topology, trade-offs. Feeds the ADRs the grilling writes |
+| `software-architecture` | 2 | Pattern and system-design review. Pairs with the above rather than replacing it |
+| `senior-data-engineer` | 3 | ERD, schema, indexing, sync strategy |
+| `senior-backend` | 3, 10, 11 | API, backend, auth implementation |
+| `senior-security` | 10 | OWASP pass, auth and secrets audit. Again before submission |
+| `codebase-design` | any | The deep-module vocabulary: module, interface, depth, seam, adapter. Reach for it when the shape is the problem |
+| `domain-modeling` | any | Keeps `CONTEXT.md` a clean glossary. Challenges fuzzy terms, records hard-to-reverse decisions as ADRs |
+| `improve-codebase-architecture` | any | A survey for spare moments. Surfaces deepening opportunities |
+
+## Standalone
+
+| Skill | What it does |
+| --- | --- |
+| `/research` | Delegates reading to a background agent, which leaves a cited markdown file. Keep working while it reads |
+| `/handoff` | A portable file, for a new harness, a new directory, or forking a side task mid-phase. Narrow by design |
+| `/wizard` | For steps only a human can take: credentials, CI secrets, an unfamiliar dashboard. Generates the script instead of re-explaining the procedure |
+| `/to-questionnaire` | When what blocks you is in someone else's head. The inverse of grilling |
+| `/wait-what` | Mid-conversation corrective when a message did not land. Re-pitches in plain English using the project's vocabulary |
+| `/retro` | Improves the agent's environment rather than the code. Navigation, automated checks, standards, tool economy |
+| `/ask-matt` | The router, for when you cannot remember which of these fits |
+| `unslop` | Applies to anything long before it is committed. The house style is not a preference, it is what keeps documents trusted |
+
+## Only the core set is global
+
+Every skill's description sits in the context window of every session in every project. All 88 cost 6,059 tokens and 65 of them could self-trigger, so `nestjs-expert` was live in a SwiftUI repo.
+
+Core is now 32 skills at 1,317 tokens. A repo declares what else it wants in a committed `.claude/skillsets` and links them with `toolkit-link`. Eleven sets exist: web, api, data, ios, design, security, ops, marketing, onepct, personal.
+
+Inside the container both are handled at start-up. Core is baked into the image, and whatever `skillsets` names is linked from `/opt/toolkit`.
+
+<Note>
+  **Skills and MCP servers are read once, at session start.** A skill linked into a repo during a session is not visible to that session. Start a new one inside the repo to pick it up.
+</Note>

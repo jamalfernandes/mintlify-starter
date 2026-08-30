@@ -1,0 +1,86 @@
+---
+title: "Every command"
+description: "The whole surface, grouped by how often you type it."
+icon: "terminal"
+---
+
+## Once per machine
+
+```bash
+cd ~/DevProj/toolkit
+./setup-machine.sh      # tokens and PATH
+./install.sh            # link the core skills
+toolkit-image           # build the sandbox image
+```
+
+All three again on your other Mac. Images do not sync. See [Setting up a machine](/setup/machine).
+
+## Once per repo
+
+```bash
+toolkit-link                                   # link this repo's declared skill sets
+cp ~/.config/toolkit/afk.env .sandcastle/.env  # the tokens the container needs
+```
+
+Also once per new worktree, for the first one. See [Putting a repo on the workflow](/setup/a-repo).
+
+## Once per product
+
+```bash
+/new-project
+```
+
+Stop 1 of [the route](/route/index). Everything else it works out by interviewing you.
+
+## Every feature
+
+```bash
+/grill-with-docs        # the interview
+/to-spec                # the conversation becomes a spec
+/to-tickets             # the spec becomes 4 to 6 tickets
+npm run afk             # the agent builds one
+/qa-plan                # turn the commits into a walkthrough
+```
+
+<Warning>
+  Keep the first three in one window. Do not clear or compact until after `/to-tickets`.
+</Warning>
+
+## Running the agent
+
+```bash
+cd ~/conductor/repos/<repo>
+npm run afk                 # one ticket. watch it
+git log -p afk/<branch>     # read what it did
+npm run afk -- --max 5      # only once you trust it
+```
+
+The `--` matters. Without it npm swallows the flag as its own.
+
+## Backlog by hand
+
+```bash
+linear ready --project "X"          # what is eligible right now
+linear show JFL-64                  # one issue in full, with blockers
+linear start JFL-64                 # move to In Progress
+linear review JFL-64 -c "..."       # move to In Review, with a comment
+linear block JFL-64 -c "..."        # back to Todo, labelled needs-info
+```
+
+There is no `done` verb, deliberately. A human decides done.
+
+## When stuck
+
+```bash
+/ask-matt               # which skill fits
+/diagnosing-bugs        # a hard bug
+/wait-what              # say that again in plain English
+```
+
+## Housekeeping
+
+```bash
+cd ~/DevProj/toolkit
+git pull && ./install.sh    # update the toolkit
+/retro                      # improve the setup after a session that went badly
+```

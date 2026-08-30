@@ -1,0 +1,67 @@
+---
+title: "Product paths"
+description: "Four shapes travel the same six stops. What each one drops, and which of them an agent can be left alone with."
+icon: "signs-post"
+---
+
+The [route](/route/index) does not change. What changes is how much design track there is, what command goes red, and whether an agent can be trusted alone with the work.
+
+|  | Marketing site | SaaS web app | API or service | Native app |
+| --- | --- | --- | --- | --- |
+| Track | Light track, four stages | Playbook, all phases | Playbook, phases 4 to 7 drop | Playbook, all phases |
+| Design track | Heaviest. The design is the product | Full. Screens, states, both themes | None. There are no screens | Full, plus HIG and motion spec |
+| Fidelity gate | **Yes** | **Yes** | N/A | **Yes, strictest** |
+| Feedback loop | `build` plus Playwright on forms | `vitest` plus Playwright e2e | Contract tests, schema validation | `xcodebuild test` on a simulator |
+| Test seams | Few. Mostly visual | Repository, API handler, e2e | The endpoint. One seam, ideal | Domain engine, repository, view model |
+| Ticket shape | One page or section, both breakpoints | Slice through schema, API and UI | One endpoint plus its contract test | One screen static, or one behaviour wired |
+| AFK sandbox | **Docker** | **Docker plus network** | **Docker** | **Not Docker** |
+| AFK suitability | **Low. Judged by eye** | **High on logic, low on UI** | **Highest of the four** | **Core only** |
+| QA shape | Device walkthrough plus Lighthouse | Browser walkthrough per flow | Consumer-side smoke test | On-device walkthrough |
+
+## Path A · Marketing site
+
+Client sites and landing pages. There is no data model worth the name, which is the Light track's own test for itself: would phase 3 have anything in it?
+
+The whole product is the design track, so the route compresses hard. Grilling covers positioning and audience rather than architecture, and the gate is really the fidelity gate arriving early.
+
+**Skip** phases 2, 3, 10, 12
+
+**Lean on** `copywriting` · `typography-expert` · `ui-design-system`
+
+**AFK** Safe technically, low value. An agent cannot tell you the hero reads wrong
+
+## Path B · SaaS web app
+
+The full route, no phases dropped, and the type the Playbook was written for. Vite, React, Zustand, Tailwind, shadcn, with Supabase or a Node backend behind it.
+
+Split AFK by layer rather than by ticket. Schema, repository, API handlers and domain logic go to the runner. Anything that renders waits for the fidelity gate.
+
+**Watch** the database. The container needs `network` set, and a seeded test database
+
+**Lean on** `senior-backend` · `senior-data-engineer` · `security-review`
+
+**AFK** Docker, with the database outside the container on a shared network
+
+## Path C · API or automation service
+
+Webhooks, scheduled jobs, integrations, anything with no user interface. Phases 4 to 7 do not apply, so the route runs brief to architecture to data model and straight into the feature loop.
+
+This is the best AFK candidate you have. One seam, deterministic assertions, no visual judgement anywhere in the loop. The contract test is the acceptance criterion, so a ticket is genuinely done when it is green.
+
+**Gate** becomes a contract review rather than a design review
+
+**Lean on** `api-integration-specialist` · `api-security-best-practices`
+
+**AFK** Docker, no caveats. Start here when proving the loop out
+
+## Path D · Native app
+
+Swift and SwiftUI on iOS, or React Native and Flutter cross-platform. The strictest fidelity gate of the four, because a design regression on a phone is invisible in a diff.
+
+The build splits in two and the split is not negotiable. Stage A reproduces the design with zero functionality and gets approved. Stage B wires behaviour without touching approved markup.
+
+**Constraint** Xcode does not run on Linux. No image changes this
+
+**Lean on** `mobile-design` · `ui-ux-pro-max`
+
+**AFK** See [Choosing a sandbox](/route/sandbox). The answer is not one thing

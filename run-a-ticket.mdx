@@ -6,18 +6,13 @@ icon: "play"
 
 ## 1. Write the ticket in Linear
 
-Put it in the repo's project. Label it **`ready-for-agent`** and move it to
-**`Todo`**.
+Put it in the repo's project. Label it **`ready-for-agent`** and move it to **`Todo`**.
 
 <Tip>
-The runner prefers `Todo` and only falls back to `Backlog` when Todo is empty.
-So moving the one you want into `Todo` is how you choose, rather than letting it
-pick from everything.
+  The runner prefers `Todo` and only falls back to `Backlog` when Todo is empty. So moving the one you want into `Todo` is how you choose, rather than letting it pick from everything.
 </Tip>
 
-A good ticket says what done looks like in a way a machine can check. The ones
-that have worked best include a line like *"prove it fails: introduce a
-violation, watch it exit non-zero, remove it."*
+A good ticket says what done looks like in a way a machine can check. The ones that have worked best include a line like _"prove it fails: introduce a violation, watch it exit non-zero, remove it."_
 
 ## 2. Check the shell has the key
 
@@ -25,13 +20,10 @@ violation, watch it exit non-zero, remove it."*
 echo ${LINEAR_API_KEY:+key is set}
 ```
 
-Nothing printed means this terminal predates the setup, or you never ran
-`setup-machine.sh`. Fix it with `source ~/.zshrc` or a new tab.
+Nothing printed means this terminal predates the setup, or you never ran `setup-machine.sh`. Fix it with `source ~/.zshrc` or a new tab.
 
 <Warning>
-The container gets its key from `.sandcastle/.env`, so the agent will work fine
-and then **the handoff will fail silently** — no pull request, no Linear link.
-This has happened twice.
+  The container gets its key from `.sandcastle/.env`, so the agent will work fine and then **the handoff will fail silently**. No pull request, no Linear link. This has happened twice.
 </Warning>
 
 ## 3. Run it
@@ -41,31 +33,24 @@ cd ~/conductor/repos/<repo>
 npm run afk
 ```
 
-Add `-- --max 3` to let it take three tickets. The `--` matters: without it npm
-swallows the flag as its own.
+Add `-- --max 3` to let it take three tickets. The `--` matters: without it npm swallows the flag as its own.
 
 Watch the first one all the way through.
 
 ## 4. Read the output, not the summary
 
-The agent's summary is its own account of what it did. **The test output is the
-evidence.** Look for:
+The agent's summary is its own account of what it did. **The test output is the evidence.** Look for:
 
 - The real test counts, including how many **skipped**
 - Whether `lint` and `typecheck` actually ran
 - `commits 1` rather than `commits 0`
 
 <Note>
-`commits 0` with "backlog is dry" means there was nothing eligible — not a
-failure. `commits 0` with a ticket claimed usually means the work was already
-done.
+  `commits 0` with "backlog is dry" means there was nothing eligible, not a failure. `commits 0` with a ticket claimed usually means the work was already done.
 </Note>
 
 ## 5. Review the pull request
 
-It is open, attached to the issue, and the issue is in `In Review`. Nothing is
-merged.
+It is open, attached to the issue, and the issue is in `In Review`. Nothing is merged.
 
-Read the diff properly. In two runs so far, both produced good work and both
-needed a small correction — one removed a comment that was load-bearing, one
-pinned a dependency a major version behind its sibling repo.
+Read the diff properly. In two runs so far, both produced good work and both needed a small correction — one removed a comment that was load-bearing, one pinned a dependency a major version behind its sibling repo.

@@ -23,8 +23,7 @@ Then in `package.json`:
 "devDependencies": { "@ai-hero/sandcastle": "^0.12.0" }
 ```
 
-**Run `npm install` after.** Declaring the dependency and installing it are two
-steps, and only doing the first leaves the documented command broken.
+**Run `npm install` after.** Declaring the dependency and installing it are two steps, and only doing the first leaves the documented command broken.
 
 ## Write two files by hand
 
@@ -36,9 +35,7 @@ steps, and only doing the first leaves the documented command broken.
 
 The runner reads that with a regex. If it cannot find it, nothing runs.
 
-**`CLAUDE.md`** — replace it, do not append. If the repo previously pointed
-agents somewhere else for their priorities, leaving that in gives the agent two
-instruction sets, and the repo-level one wins on first read.
+**`CLAUDE.md`**, replace it rather than appending to it. If the repo previously pointed agents somewhere else for their priorities, leaving that in gives the agent two instruction sets, and the repo-level one wins on first read.
 
 ## Copy the token file
 
@@ -52,7 +49,7 @@ Once per working copy. It is gitignored; check that it actually is.
 
 These four must be ignored, and the example must not be:
 
-```
+```text
 .sandcastle/logs/
 .sandcastle/worktrees/
 .sandcastle/patches/
@@ -60,17 +57,14 @@ These four must be ignored, and the example must not be:
 !.sandcastle/.env.example
 ```
 
-`.claude/skills/` holds absolute symlinks resolved per machine. Committing them
-breaks your other machine.
+`.claude/skills/` holds absolute symlinks resolved per machine. Committing them breaks your other machine.
 
 ## Then prove the container can run the tests
 
 <Warning>
-**Do this before any unattended run.** Build a throwaway worktree, run the suite
-inside the container, and compare the count to the host.
+  **Do this before any unattended run.** Build a throwaway worktree, run the suite inside the container, and compare the count to the host.
 
-Use a worktree, not your working copy: `npm install` in a Linux container against
-a mounted macOS directory replaces the native binaries and breaks your host.
+  Use a worktree, not your working copy: `npm install` in a Linux container against a mounted macOS directory replaces the native binaries and breaks your host.
 </Warning>
 
 ```bash
@@ -82,5 +76,4 @@ docker run --rm --entrypoint bash \
 git worktree remove --force /tmp/gate
 ```
 
-If the numbers match the host, you are done. If tests skip, **write the real
-number into `CLAUDE.md`** so an agent knows what a green run is worth.
+If the numbers match the host, you are done. If tests skip, **write the real number into `CLAUDE.md`** so an agent knows what a green run is worth.

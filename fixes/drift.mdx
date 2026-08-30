@@ -5,34 +5,26 @@ icon: "code-compare"
 ---
 
 <Warning>
-**This is the most expensive failure in the system, and the hardest to see.**
-Nothing carries a version number, so when two copies disagree there is no way to
-ask which is newer. Every entry below is a real instance.
+  **This is the most expensive failure in the system, and the hardest to see.** Nothing carries a version number, so when two copies disagree there is no way to ask which is newer. Every entry below is a real instance.
 </Warning>
 
 ## The toolkit folder is not a git repo
 
 **Seen:** `git -C ~/DevProj/toolkit log` fails. Everything else looks normal.
 
-**Actually wrong:** on jmini the folder existed as a **file-synced copy** rather
-than a clone. It cannot `git pull`, so it silently fell behind GitHub — and there
-is no visible difference between a stale copy and a current one.
+**Actually wrong:** on jmini the folder existed as a **file-synced copy** rather than a clone. It cannot `git pull`, so it silently fell behind GitHub, and there is no visible difference between a stale copy and a current one.
 
-**What it cost:** an afternoon "fixing" toolkit files by copying them from a
-project, on the belief the toolkit was behind. GitHub already had newer versions
-of most of them, including a **larger `bin/linear`** than the one copied in. The
-only thing that prevented a regression was that the stale copy had no `.git` to
-push from.
+**What it cost:** an afternoon "fixing" toolkit files by copying them from a project, on the belief the toolkit was behind. GitHub already had newer versions of most of them, including a **larger `bin/linear`** than the one copied in. The only thing that prevented a regression was that the stale copy had no `.git` to push from.
 
 **Fix:**
+
 ```bash
 git clone git@github.com:jamalfernandes/toolkit.git ~/DevProj/toolkit
 ```
-Back up the existing folder first and diff it, in case the other machine left
-genuine changes there that were never pushed.
 
-**How to tell:** `git -C ~/DevProj/toolkit status` must work. If it does not,
-nothing in that folder is trustworthy.
+Back up the existing folder first and diff it, in case the other machine left genuine changes there that were never pushed.
+
+**How to tell:** `git -C ~/DevProj/toolkit status` must work. If it does not, nothing in that folder is trustworthy.
 
 ---
 
@@ -40,37 +32,23 @@ nothing in that folder is trustworthy.
 
 **Seen:** a brand-new repo hits a problem that another repo solved weeks ago.
 
-**Actually wrong:** the fix was made in the project that hit it and never went
-back to the toolkit or the starters. The next project starts from the template,
-which never learned.
+**Actually wrong:** the fix was made in the project that hit it and never went back to the toolkit or the starters. The next project starts from the template, which never learned.
 
-**Real case:** `cffd-api` fixed the `LINEAR_PROJECT` sandbox-env bug and wrote a
-comment explaining it. The toolkit template kept the broken version, so the next
-repo scaffolded from it failed identically on its first run.
+**Real case:** `cffd-api` fixed the `LINEAR_PROJECT` sandbox-env bug and wrote a comment explaining it. The toolkit template kept the broken version, so the next repo scaffolded from it failed identically on its first run.
 
-**Fix:** when a project fixes something that is not project-specific, put it in
-the toolkit or the starter **in the same session**. Then write it here.
+**Fix:** when a project fixes something that is not project-specific, put it in the toolkit or the starter **in the same session**. Then write it here.
 
-**How to tell:** before assuming the template is behind, check GitHub rather than
-your local copy. It has been the other way round at least once.
+**How to tell:** before assuming the template is behind, check GitHub rather than your local copy. It has been the other way round at least once.
 
 ---
 
 ## The synced copy was ahead, not behind
 
-**Seen:** you compare `~/DevProj/toolkit` against a fresh clone of the toolkit and
-they differ. The obvious reading is that the local copy is stale.
+**Seen:** you compare `~/DevProj/toolkit` against a fresh clone of the toolkit and they differ. The obvious reading is that the local copy is stale.
 
-**Actually wrong:** on 28 August it was the other way round. `~/DevProj/toolkit`
-held two fixes that GitHub did not — the ten-second wait before asserting In
-Review, and the prompt step order that reviews the diff before committing. They
-were written there, and because that directory is synced without its `.git` there
-was nothing to push from, so they stayed. Every repo scaffolded from GitHub since
-had been getting the older runner.
+**Actually wrong:** on 28 August it was the other way round. `~/DevProj/toolkit` held two fixes that GitHub did not: the ten-second wait before asserting In Review, and the prompt step order that reviews the diff before committing. They were written there, and because that directory is synced without its `.git` there was nothing to push from, so they stayed. Every repo scaffolded from GitHub since had been getting the older runner.
 
-The entry above says a file-synced copy goes stale. It can also be the only place
-a fix exists. Both are true, which is why the direction has to be checked rather
-than assumed.
+The entry above says a file-synced copy goes stale. It can also be the only place a fix exists. Both are true, which is why the direction has to be checked rather than assumed.
 
 **Fix:** diff before copying, in whichever direction the diff turns out to point.
 
@@ -79,31 +57,26 @@ gh repo clone jamalfernandes/toolkit /tmp/tk -- --depth 1
 diff /tmp/tk/sandcastle/main.mts ~/DevProj/toolkit/sandcastle/main.mts
 ```
 
-Then copy the newer file into the clone and push from there. Never push from
-`~/DevProj/toolkit`; it has no `.git` and the attempt is what starts the confusion.
+Then copy the newer file into the clone and push from there. Never push from `~/DevProj/toolkit`; it has no `.git` and the attempt is what starts the confusion.
 
-**How to tell:** that `diff` is empty. Run it before scaffolding a new repo, not
-after wondering why the runner behaved oddly.
+**How to tell:** that `diff` is empty. Run it before scaffolding a new repo, not after wondering why the runner behaved oddly.
 
 ## `install.sh --check` reports drift
 
 **Seen:**
-```
+
+```text
 drift, 3 item(s):
   new-project is a real directory and differs from this toolkit
   qa-plan is not linked
   skill-creator is not linked
 ```
 
-**Two different problems.** *Not linked* means `core.txt` gained a name after the
-last `install.sh` — harmless, just re-run it.
+**Two different problems.** _Not linked_ means `core.txt` gained a name after the last `install.sh`. Harmless, just re-run it.
 
-*A real directory that differs* means **two things installed a skill of the same
-name**. In this case an older system copied `new-project` in, and the toolkit has
-its own. `install.sh` refuses to overwrite rather than guess.
+_A real directory that differs_ means **two things installed a skill of the same name**. In this case an older system copied `new-project` in, and the toolkit has its own. `install.sh` refuses to overwrite rather than guess.
 
-**Fix:** decide which one you want, remove the other, re-run `install.sh`. The
-skills become symlinks, so `git pull` updates them afterwards with no second step.
+**Fix:** decide which one you want, remove the other, re-run `install.sh`. The skills become symlinks, so `git pull` updates them afterwards with no second step.
 
 ---
 
@@ -113,16 +86,13 @@ The general drill, in order:
 
 <Steps>
   <Step title="Find the canonical copy">
-    Not the one on your disk. The one on GitHub. `gh repo view <name>` shows the
-    last push.
+    Not the one on your disk. The one on GitHub. `gh repo view <name>` shows the last push.
   </Step>
   <Step title="Compare sizes before contents">
-    `wc -c` on both. A file that is 1,800 bytes larger usually has features the
-    other lacks, and that is a faster signal than reading a diff.
+    `wc -c` on both. A file that is 1,800 bytes larger usually has features the other lacks, and that is a faster signal than reading a diff.
   </Step>
   <Step title="Check which direction the fix flows">
-    Ask what each side has that the other does not, not which one is "right".
-    Today both sides had something.
+    Ask what each side has that the other does not, not which one is "right". Today both sides had something.
   </Step>
   <Step title="Write down what you concluded">
     Here. The next session cannot see what you just worked out.

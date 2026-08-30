@@ -1,57 +1,60 @@
 ---
 title: "How the pieces fit"
-description: "Four things, and what each one is allowed to change."
+description: "Five systems, what each one owns, and the rule that stops any fact having two homes."
 icon: "diagram-project"
 ---
 
-## The four pieces
+## The five pieces
+
+Each one owns a fact, and no fact has two homes. That is the rule that settles every boundary question below.
 
 <CardGroup cols={2}>
+  <Card title="Nostos" icon="calendar-days">
+    Which product gets Tuesday. The only place that can see a side project competing against a client deadline. **It holds no tickets, ever.**
+  </Card>
+
   <Card title="Linear" icon="list-check">
-    Holds the work. One project per repo. An agent only ever takes issues
-    labelled `ready-for-agent`.
+    Holds the work. One project per repo. An agent only ever takes issues labelled `ready-for-agent`.
   </Card>
+
   <Card title="The toolkit" icon="wrench">
-    `~/DevProj/toolkit`. The skills, the `linear` CLI, the container image, the
-    runner. **Identical in every project.**
+    `~/DevProj/toolkit`. The skills, the `linear` CLI, the container image, the runner. **Identical in every project.**
   </Card>
+
   <Card title="The starters" icon="seedling">
-    `starter-web` and `starter-ios`. Copied into a new repo once, then owned by
-    that repo and free to diverge.
+    `starter-web` and `starter-ios`. Copied into a new repo once, then owned by that repo and free to diverge.
   </Card>
+
   <Card title="The repo" icon="folder">
-    Your actual code, plus `.sandcastle/`, `.claude/skillsets` and
-    `docs/agents/` telling the agent where it is.
+    Your actual code, plus `.sandcastle/`, `.claude/skillsets` and `docs/agents/` telling the agent where it is.
   </Card>
 </CardGroup>
 
+<Note>
+  **Nostos schedules the shift, Linear holds the shift's work.** The moment a ticket appears in Nostos you have double entry, and within a week one of the two is lying.
+</Note>
+
 ## What happens when you run it
+
+This is stop 5 of [the route](/route/index), in four steps. [Inside the sandbox](/run/inside-the-sandbox) has what each one is actually doing.
 
 <Steps>
   <Step title="It reads the backlog">
-    `linear ready --project "<name>"` returns issues that are `ready-for-agent`,
-    not started, and whose blockers are all done. The project name comes from
-    `docs/agents/issue-tracker.md`, so it cannot drift from what every other
-    agent is told.
+    `linear ready --project "<name>"` returns issues that are `ready-for-agent`, not started, and whose blockers are all done. The project name comes from `docs/agents/issue-tracker.md`, so it cannot drift from what every other agent is told.
   </Step>
   <Step title="It makes a container">
-    A fresh git worktree, bind-mounted into a Linux container as user `agent`.
-    It sees that worktree and nothing else of yours: no SSH keys, no other repo,
-    no keychain.
+    A fresh git worktree, bind-mounted into a Linux container as user `agent`. It sees that worktree and nothing else of yours: no SSH keys, no other repo, no keychain.
   </Step>
   <Step title="The agent works">
-    It claims the issue (`In Progress`), writes code, and runs the repo's own
-    checks. **It commits inside the container.**
+    It claims the issue (`In Progress`), writes code, and runs the repo's own checks. **It commits inside the container.**
   </Step>
   <Step title="The host finishes up">
-    Renames the branch to carry the ticket id, pushes, opens a pull request,
-    attaches it to the Linear issue, and moves the issue to `In Review`.
+    Renames the branch to carry the ticket id, pushes, opens a pull request, attaches it to the Linear issue, and moves the issue to `In Review`.
   </Step>
 </Steps>
 
 <Note>
-**An agent never sets an issue to Done, and never merges.** It stops at
-`In Review`. That boundary is the whole safety model.
+  **An agent never sets an issue to Done, and never merges.** It stops at `In Review`. That boundary is the whole safety model.
 </Note>
 
 ## The rule that keeps it honest
@@ -64,20 +67,14 @@ npm run test
 npm run lint      # where it exists
 ```
 
-If an agent cannot run them, it is told to say so and not commit. A commit that
-fails the repo's own checks is worse than no commit — and a report of "tests
-passed" from a command that never ran is worse than both.
+If an agent cannot run them, it is told to say so and not commit. A commit that fails the repo's own checks is worse than no commit, and a report of "tests passed" from a command that never ran is worse than both.
 
 <Warning>
-**Read the numbers, not the word "passed".** In `boost33-identity`, 126 of 157
-tests skip without a database. A run there can be green and have exercised a
-fifth of the suite. That repo's `CLAUDE.md` says so; others may not.
+  **Read the numbers, not the word "passed".** In `boost33-identity`, 126 of 157 tests skip without a database. A run there can be green and have exercised a fifth of the suite. That repo's `CLAUDE.md` says so; others may not.
 </Warning>
 
 ## Where skills come from
 
-Only the **core** set is global, because every skill's description sits in the
-context window of every session. A repo asks for more in `.claude/skillsets`.
+Only the **core** set is global, because every skill's description sits in the context window of every session. A repo asks for more in `.claude/skillsets`.
 
-Inside the container both are handled at start-up: core is baked into the image,
-and whatever `skillsets` names is linked from `/opt/toolkit`.
+Inside the container both are handled at start-up: core is baked into the image, and whatever `skillsets` names is linked from `/opt/toolkit`.
