@@ -78,6 +78,19 @@ prompt makes the agent look hung.
 **How to tell:** `npm run lint </dev/null` completes. If it hangs on empty stdin,
 it is waiting for an answer.
 
+### On Next 16 it fails, but not in a way that mentions lint
+
+Next 16 removed the command outright. It does not say so. It reads the word `lint`
+as a directory argument and reports:
+
+```
+Invalid project directory provided, no such directory: /path/to/repo/lint
+```
+
+which looks like a broken path and sends you looking in the wrong place. Same fix,
+same reason. Three versions, three behaviours: Next 14 lints, Next 15 prompts,
+Next 16 hunts for a directory called `lint`.
+
 ## The Next 15 flat config is not the Next 16 one
 
 **Seen:**
@@ -130,6 +143,40 @@ that checks before building; the container is just the first thing that told you
 
 **How to tell:** `rm next-env.d.ts && npm run typecheck` is clean. If it is not,
 your green typecheck depends on a file nobody else has.
+
+## The repo already has skills, committed into it
+
+**Seen:** the repo has a `.claude/skills/` directory with real content in it,
+tracked by git, and you are about to add `.claude/skillsets` next to it.
+
+**Actually wrong:** nothing yet, but adding the second mechanism is the mistake.
+Claude Code reads project-scope skills from `.claude/skills/` and user-scope ones
+from `~/.claude/skills`, and the container links the toolkit's into the second. Any
+skill present in both is then described twice in every context window, which is
+the exact cost the toolkit is arranged to avoid.
+
+Voice had 34 vendored skills and 32 of them were already in the toolkit by the
+same name.
+
+**Fix:** check the overlap before deciding anything.
+
+```bash
+comm -12 <(ls .claude/skills | sort) <(ls ~/DevProj/toolkit/skills | sort)
+```
+
+Adopt the ones that exist only in the repo into the toolkit first, so that nothing
+is lost, then delete the vendored directory and declare `.claude/skillsets`. A
+skill that is not project-specific belongs in the toolkit; that is the same filing
+rule as everything else.
+
+**How to tell:** `comm -12` prints nothing, and the repo has `skillsets` but no
+`skills/`.
+
+<Warning>
+Adopting skills into the toolkit means the sandbox image is stale until it is
+rebuilt, because the image bakes them at build time. Budget for that: it is a slow
+build, and it is worth starting before you need it rather than at the gate.
+</Warning>
 
 ## .gitignore quietly ate the skillsets file
 
