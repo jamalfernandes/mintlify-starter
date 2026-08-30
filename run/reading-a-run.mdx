@@ -1,0 +1,137 @@
+---
+title: "Reading a run"
+description: "The agent's summary is a claim, and the transcript is thinner evidence than it looks. What to check, in what order."
+icon: "magnifying-glass"
+---
+
+A finished run ends with a confident summary: what was built, which tests pass, every acceptance criterion covered. That summary is the agent's account of its own work. It is usually right. It is never evidence.
+
+This page is about the gap between the two, using a real run of `JFL-88` on CFFD API.
+
+## What each layer of the output is actually worth
+
+| What you are looking at | What it proves |
+| --- | --- |
+| The closing summary | What the agent believes it did |
+| A `Bash(...)` line | That a command was issued. Not what it printed |
+| The prose between those lines | The agent's reading of output you never saw |
+| `commits 1` and a sha | That something was written to disk |
+| The diff on the pull request | What actually changed |
+| The suite, run by you, on that branch | Whether it works |
+
+Only the last two rows are yours. Everything above them is testimony.
+
+## The truncation problem
+
+Look at how every test invocation in that run was written:
+
+```bash
+npm run test 2>&1 | tail -25
+npm run typecheck 2>&1 | tail -8 && npm run test 2>&1 | tail -8
+```
+
+The agent pipes its own commands through `tail` to save context. That is sensible behaviour and you want it. But it means the agent itself only ever saw the last eight lines, and you saw a summary of those eight lines.
+
+So when the transcript says **`Full feedback loop green (typecheck, 14 tests, lint clean)`**, that sentence is three layers away from a test runner. Nothing in the scrollback shows you a single test name.
+
+<Warning>
+  Ask which command would have produced a _different_ transcript if the tests had silently not run at all. For `npm run test | tail -8`, the answer is often none: a runner that matches zero files still exits `0` on some configurations, and the tail looks calm either way.
+</Warning>
+
+## The check, in four commands
+
+Run these on the branch the run pushed. Nothing here takes more than a minute.
+
+```bash
+git fetch origin
+git checkout afk/jfl-88-refuse-a-structurally-wrong-statement-payload
+npm ci
+```
+
+**1. Make the tests say their own names.**
+
+```bash
+npx vitest run --reporter=verbose
+```
+
+This turns `14 tests` into fourteen sentences. Read them against the ticket's acceptance criteria. A count can be padded; a list of names cannot hide what it does not cover.
+
+**2. Count the assertions, not the tests.**
+
+```bash
+grep -c "expect(" src/domain/validate-statement.test.ts
+```
+
+A test with no `expect` passes. So does a test whose `expect` is inside a callback that never fires.
+
+**3. Look for anything switched off.**
+
+```bash
+grep -rn "\.skip\|\.todo\|\.only" src
+```
+
+`.only` is the dangerous one. It makes the suite green by running almost none of it, and the summary line still reads as a pass.
+
+**4. Prove the tests can fail.**
+
+Break the implementation on purpose, run the suite, and watch it go red. Then undo it. If deleting the rule under test does not fail anything, the test is decorative.
+
+## The red that was not really red
+
+The agent reported this, and it is the most instructive line in the whole run:
+
+> Red confirmed (module missing, plus the 3 existing money tests still pass).
+
+Read it again. The tests failed because the file they import did not exist yet. That is a _loading_ failure, not an _assertion_ failure.
+
+The point of writing the test first is to watch it fail for the reason you expect: the rule is not enforced. A missing-module error proves only that you have not written the module. Every test in the file, including one that asserts nothing at all, produces exactly the same red.
+
+<Tip>
+  The stronger sequence is: write the tests, write an empty stub that satisfies the imports, and _then_ confirm red. Now the failures are assertion failures with real messages, and you have seen the tests do their job before they turn green.
+</Tip>
+
+## Claims worth spot-checking
+
+These are agent statements from the same run that are dismissals rather than descriptions. Each is checkable in one command.
+
+| The claim | The check |
+| --- | --- |
+| "none of the findings are in my changed files" | `git diff main...HEAD --stat` |
+| "only my four new files" | `git status --short` at that commit |
+| "reconciliation is the follow-up slice" | Is that follow-up actually a ticket, or just a sentence? |
+| "the `tdd` skill isn't available, I followed the loop manually" | See [The agent did nothing](/fixes/the-agent-did-nothing). A missing skill is a real fault, not a footnote |
+
+That last one matters more than it looks. The agent worked around a broken environment and mentioned it in passing. The workaround was fine; the broken environment was still broken on the next run, and nobody had written it down.
+
+## Nothing else is checking
+
+```bash
+ls .github/workflows
+```
+
+On CFFD API today this directory does not exist. There is no CI. No check re-runs those tests when the pull request opens, and the green tick you are used to seeing on GitHub is not there to be missing.
+
+So the four commands above are not a second opinion. Until CI exists, they are the **only** time the suite runs on a machine that is not the one that wrote it.
+
+## Reading the closing block
+
+```text
+iterations  1
+commits     1
+branch      afk/1787842899240
+finished    backlog is dry
+pushed      afk/jfl-88-refuse-a-structurally-wrong-statement-payload
+up next: nothing (every ready issue is blocked) · 14 held in Backlog · 0 moved
+```
+
+The run was launched with `--max 20` and stopped after one iteration. That is not a failure, and it is also not completion.
+
+**"Backlog is dry"** means _nothing eligible remains_, which is a different sentence from _the work is done_. The last line says so plainly: fourteen issues are sitting in Backlog, every one of them blocked by something not yet marked Done. One merged ticket often unblocks several, so the usual fix is to review and merge, then run again rather than assume the queue is empty.
+
+`Context window: 86k` is worth a glance too. Comfortable here. When a run ends near the limit, the agent was compressing its own history while working, and its account of early iterations is the least reliable part of the transcript.
+
+## What this one got right
+
+Checked afterwards: the new test file had eleven `it` blocks, the suite already had three, and the reported total was fourteen. The claim held exactly.
+
+That is the normal outcome, and it is the reason to keep checking rather than to stop. You are not looking for a lying agent. You are looking for the run where a skill failed to load, or the runner matched no files, or a `.only` slipped in — and the summary read precisely as calm and precise as this one did.

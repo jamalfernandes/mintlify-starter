@@ -6,6 +6,14 @@ icon: "clock-rotate-left"
 
 ## 30 August 2026
 
+### How to read a run, and the fact that nothing else is reading it
+
+[Reading a run](/run/reading-a-run) is a new page, worked through a real `JFL-88` run on CFFD API. The point it exists to make: every test command in that run was piped through `tail -8`, so the agent saw eight lines, and the transcript shows you its summary of those eight lines. No test name appears anywhere.
+
+Writing it turned up something worth its own line. **CFFD API has no `.github/workflows`.** No CI re-runs the suite when a PR opens, so there is no red tick to be missing — which makes checking by hand the only time those tests run anywhere but the machine that wrote them.
+
+Also recorded: a "red" that was only a missing-module error proves nothing about the assertions, and `backlog is dry` after one of twenty iterations means _nothing eligible_, not _nothing left_.
+
 ### The docs repo is `mintlify-starter`, and `workflow-docs` is archived
 
 Two docs repos existed. The deployment was wired to `mintlify-starter` while this site's own Overview named `workflow-docs`, which had been sitting two days stale and looking canonical. `workflow-docs` is now archived and the pointer is corrected.
