@@ -6,6 +6,26 @@ icon: "clock-rotate-left"
 
 ## 30 August 2026
 
+### The docs repo is `mintlify-starter`, and `workflow-docs` is archived
+
+Two docs repos existed. The deployment was wired to `mintlify-starter` while this site's own Overview named `workflow-docs`, which had been sitting two days stale and looking canonical. `workflow-docs` is now archived and the pointer is corrected.
+
+Diffing them first was worth it. `fixes/the-pr-shows-a-failing-build` existed only in the archived repo and would have gone with it, and it carries the finding that gating Vercel's ignore command on `VERCEL_ENV` skips the production build silently.
+
+### The site now describes the whole route, not just the AFK loop
+
+The Overview covered stop 5 of six. The route itself sat in `reference/build-track`, a page doing five jobs, and was described a second time in `reference/running-the-loop` with different numbering. Both are split into single-purpose pages and the journey is documented once.
+
+The status table moved to [What is real](/history/status) with a checked date per row, because it claimed a full AFK iteration was unproven two days after four repos had run one.
+
+### EaglePoint is called Nostos
+
+Prose only, on this site. The MCP server is still registered as `eaglepoint`.
+
+### A page that read as empty was not empty
+
+`## "No local <name> skill"` made `fixes/the-agent-did-nothing` unparseable, and the editor loads a broken file as an empty document rather than reporting the error. It was rewritten as a stub on that basis and restored from the other repo. Recorded in [Drift](/fixes/drift).
+
 ### Voice joined, and Score's scaffold merged
 
 `boost33-elite-content-forge` is the fourth and last Boost33 product on the loop, Linear project **Boost33 Voice**. Score's scaffold went in as BoostScore #30. Voice is deferred, so it is on the workflow to start from the same place as the others when it resumes, not to start work now.
