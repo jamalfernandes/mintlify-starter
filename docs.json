@@ -36,7 +36,8 @@
             "group": "Set up",
             "pages": [
               "setup/machine",
-              "setup/a-repo"
+              "setup/a-repo",
+              "setup/another-machine"
             ]
           },
           {

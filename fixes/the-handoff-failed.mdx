@@ -111,6 +111,52 @@ linear groom
 
 ---
 
+## `linear: command not found`, but only over SSH
+
+**Seen:** the run works for minutes, commits, and then the handoff dies.
+
+```text
+Could not open the PR: Command failed: linear attach JFL-221 …
+linear: command not found
+```
+
+It only happens when the run was started by passing the command to `ssh` as an
+argument, like `ssh jmini "cd ~/conductor/repos/boostscore && npm run afk"`.
+
+**Actually wrong:** `~/DevProj/toolkit/bin` joins the PATH through a line in
+`~/.zshrc`, and zsh reads `~/.zshrc` for interactive shells only. Passing a
+command to `ssh` gives you a non-interactive shell, so that line never runs and
+`linear` does not exist. The run gets far enough to look healthy because
+`linear` is not called until the handoff.
+
+Same shape as the missing-key case above. That shell had no key. This one has no
+PATH.
+
+Tested in a clean environment:
+
+```bash
+env -i HOME="$HOME" /bin/zsh -c 'command -v linear'                # prints nothing
+env -i HOME="$HOME" TERM=xterm /bin/zsh -ic 'command -v linear'    # finds it
+```
+
+**Fix:** work inside tmux, which gives you an interactive shell anyway.
+
+```bash
+ssh -t jamalfernandes@jmini 'tmux new -A -s boost'
+```
+
+For a genuine one-shot, ask for the interactive shell by hand:
+
+```bash
+ssh jmini "zsh -ic 'cd ~/conductor/repos/boostscore && npm run afk'"
+```
+
+**Confirmed fixed when:** `command -v linear` prints
+`/Users/jamalfernandes/DevProj/toolkit/bin/linear` in the shell you are about to
+run from. See [Working from another machine](/setup/another-machine).
+
+---
+
 ## `git push` rejected as non-fast-forward
 
 **Actually wrong:** a branch of that name already exists on the remote and has diverged. Often a stale PR branch whose commit is the **pre-squash original** of something already merged.

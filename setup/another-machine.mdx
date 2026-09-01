@@ -1,0 +1,234 @@
+---
+title: "Working from another machine"
+description: "Connect to jmini instead of rebuilding the setup on a second computer."
+icon: "network-wired"
+---
+
+All the Boost work sits on jmini. The secrets, the container image, the Linear
+login, Claude's project memory, and the Conductor worktrees are all there. When
+you are away from it, the cheapest move is to connect to jmini and work on the
+real thing. One machine, one copy of everything, nothing to keep in step.
+
+The alternative is copying the setup to a second computer, and then keeping two
+copies in agreement. That is more work and it goes wrong quietly.
+
+Verified on 2026-09-01: macOS 27.0, zsh, Claude Code 2.1.231, node v25.8.1,
+npm 11.11.0, Docker image `sandcastle:node22` at 2.01 GB.
+
+## Get connected
+
+<Steps>
+  <Step title="Check both machines are on the tailnet">
+    ```bash
+    tailscale status
+    ```
+
+    Run this from the laptop. jmini should be listed. If it is not, nothing
+    below will work, and no amount of retrying the SSH command will help.
+  </Step>
+  <Step title="Connect straight into tmux">
+    ```bash
+    ssh -t jamalfernandes@jmini 'tmux new -A -s boost'
+    ```
+
+    `new -A` attaches to the `boost` session if it exists and creates it if it
+    does not. That means the same command is correct every time, whether you are
+    starting the day or coming back from a dropped connection.
+
+    If the short name does not resolve, MagicDNS is not answering. Use the full
+    name or the tailnet IP from the `tailscale status` output above.
+  </Step>
+  <Step title="Go to the repo and start work">
+    ```bash
+    cd ~/conductor/repos/boostscore
+    claude
+    ```
+
+    Claude Code is already installed and logged in at `/opt/homebrew/bin/claude`.
+    There is nothing to set up on first connect.
+  </Step>
+</Steps>
+
+Detach without stopping anything with `Ctrl-b d`. Whatever is running keeps
+running on jmini after you close the laptop.
+
+## jmini will not fall asleep on you
+
+This was checked rather than assumed:
+
+- `pmset sleep 0`, so the system never sleeps on idle.
+- `ttyskeepawake 1`, so an open SSH session holds it awake by itself.
+- It runs on AC power with wake-on-LAN on.
+
+Only the display sleeps, after 60 minutes. That does not affect SSH.
+
+## Always use tmux
+
+Office wifi drops. A dropped SSH connection kills every process attached to it,
+and losing a run halfway through is the expensive version of that.
+
+tmux keeps the work running on jmini rather than on the connection. When the
+wifi goes, reconnect with the same command from step 2 and everything is still
+there.
+
+## The trap: a one-shot SSH command has no PATH
+
+This one is worth understanding before it costs you a run.
+
+<Warning>
+  **This fails, and it fails late:**
+
+  ```bash
+  ssh jmini "cd ~/conductor/repos/boostscore && npm run afk"
+  ```
+
+  The runner starts, works for a while, then dies with `linear: command not
+  found` partway through. Nothing about the error points at SSH.
+</Warning>
+
+`linear` and `toolkit-image` are on the PATH because of an export in
+`~/.zshrc`. zsh only reads `~/.zshrc` for **interactive** shells. When you pass
+a command to `ssh` as an argument, you get a non-interactive shell, so that line
+never runs and those two commands do not exist.
+
+The runner calls `linear` well into its work, not at the start, which is why it
+gets far enough to look healthy first.
+
+Tested in a clean environment:
+
+```bash
+env -i HOME="$HOME" /bin/zsh -c 'command -v linear'        # NOT ON PATH
+env -i HOME="$HOME" TERM=xterm /bin/zsh -ic 'command -v linear'
+# /Users/jamalfernandes/DevProj/toolkit/bin/linear
+```
+
+The tmux command in step 2 gives you an interactive shell, so following the
+steps above avoids this entirely. If you genuinely need a one-shot command, ask
+for an interactive shell by hand:
+
+```bash
+ssh jmini "zsh -ic 'cd ~/conductor/repos/boostscore && npm run afk'"
+```
+
+## Where everything is
+
+Every Boost repo is under `~/conductor/repos/`.
+
+| Repo | Path | Has a runner |
+| --- | --- | --- |
+| BoostScore | `~/conductor/repos/boostscore` | yes |
+| BoostLedger | `~/conductor/repos/boostledger` | yes |
+| Identity | `~/conductor/repos/boost33-identity` | yes |
+| Hub | `~/conductor/repos/boost33-hub-v1` | yes |
+| Elite Content Forge | `~/conductor/repos/boost33-elite-content-forge` | yes |
+
+<Warning>
+  **The hub runner is in `boost33-hub-v1`, not `boost33-hub`.** Only the `-v1`
+  checkout has a `.sandcastle/` directory. `cd`ing to the wrong one gives you a
+  missing-script error that reads like the runner is broken.
+</Warning>
+
+Three other paths come up often:
+
+- `~/ShipStudio/boostscore` is the second BoostScore checkout. It holds a
+  working `.env` with `DATABASE_URL` and `DIRECT_URL`.
+- `~/conductor/workspaces/boostscore/` holds the Conductor worktrees, named
+  after cities, with name symlinks pointing at them.
+- `~/DevProj/toolkit/bin` holds `linear` and `toolkit-image`.
+
+## Claude Code
+
+Start it with `claude` from inside a repo.
+
+Claude's memory for a project is filed under the repo's full path, so opening
+`~/conductor/repos/boostscore` is what loads the BoostScore memory. Starting
+from a different folder gives you a Claude with none of that context.
+
+## Running a ticket
+
+Same as anywhere else. One Linear issue per pass, in a Docker sandbox,
+tests first, committed to a branch with a PR linked back to the issue.
+
+```bash
+cd ~/conductor/repos/boostscore
+npm run afk                  # one issue, watched
+npm run afk -- --max 5       # five in a row
+npm run afk -- --model <id>  # default is claude-opus-4-8
+```
+
+It never merges and never pushes to `main`. It finishes at **In Review**. A
+human decides Done.
+
+Each repo reads its own Linear project name from
+`docs/agents/issue-tracker.md`, so you never pass the project by hand.
+BoostScore's is Boost33 Score.
+
+### Check these before the first run of the day
+
+```bash
+docker ps                          # is the daemon up?
+docker images | grep sandcastle    # expect sandcastle:node22
+command -v linear                  # expect ~/DevProj/toolkit/bin/linear
+```
+
+Three things have to be true:
+
+**Docker Desktop is running.** The sandbox is a container, so without the daemon
+the run fails at once. Start it with `open -a Docker` and give it about 30
+seconds. That works over SSH only because someone is logged in locally on
+jmini. After a reboot it will not.
+
+**The `sandcastle:node22` image exists.** Every repo shares this one image.
+Rebuild it with `toolkit-image` if it is gone. See
+[Setting up a machine](/setup/machine).
+
+**The credentials are in place.** Each repo has `.sandcastle/.env` with
+`LINEAR_API_KEY` and `CLAUDE_CODE_OAUTH_TOKEN`. The same pair also sits in
+`~/.config/toolkit/afk.env`, which `~/.zshrc` loads into every interactive
+shell. All present as of 2026-09-01. Neither file is ever committed.
+
+### The checks a run has to pass
+
+```bash
+npm run typecheck    # tsc --noEmit
+npm test             # vitest run
+npm run lint         # eslint .
+```
+
+`npm test` does not run the end-to-end suite. `npm run test:e2e` needs a
+database and a dev server on port 3000, and cannot run inside the sandbox. So a
+green unit suite does not tell you a buyer can still get through onboarding.
+Anything touching the golden path still wants a human to run the e2e suite
+before the PR is merged.
+
+## One rule while you are connected
+
+Mutagen syncs `~/conductor`, `~/ShipStudio` and `~/DevProj` between jmini and
+the laptop, in both directions. Edits you make over SSH reach the laptop within
+seconds.
+
+**Work on one side only.** If the laptop has an editor, a dev server, or a
+Claude session open on those same folders while you are editing over SSH, two
+machines are writing to one set of files and mutagen starts leaving conflict
+copies behind. Close them on the laptop, or stay off SSH.
+
+Mutagen does not sync `.git`. Commits you make on jmini are invisible to the
+laptop's git until you push and the laptop fetches. Working files sync, history
+does not.
+
+## When it breaks
+
+**The connection drops.** Expected, and harmless. Reconnect with the step 2
+command. tmux kept everything running.
+
+**`docker ps` gives an error.** Docker Desktop is not running. `open -a Docker`,
+wait, try again.
+
+**jmini stops answering at all.** This is the one you cannot fix from the
+laptop. FileVault is on, so if jmini restarts for any reason, and a brief power
+cut is enough because it is set to restart automatically, it stops at the
+unlock screen before the network starts. No SSH until someone types the
+password in person.
+
+Plan for it rather than react to it. Push your branches before you leave, and
+the laptop can work standalone from GitHub in the meantime.
