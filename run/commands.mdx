@@ -65,9 +65,18 @@ linear show JFL-64                  # one issue in full, with blockers
 linear start JFL-64                 # move to In Progress
 linear review JFL-64 -c "..."       # move to In Review, with a comment
 linear block JFL-64 -c "..."        # back to Todo, labelled needs-info
+
+linear groom --project "X"          # promote the next three unblocked to Todo
+linear groom --project "X" --dry-run   # print the moves, change nothing
+linear groom --project "X" --demote    # also park everything behind them
 ```
 
 There is no `done` verb, deliberately. A human decides done.
+
+Grooming runs automatically at the end of every `npm run afk`, and it only ever
+promotes. Anything you staged into `Todo` yourself stays there; the summary line
+counts what is queued behind the first three so an overfull column is still
+visible. `--demote` opts into sweeping the rest back to `Backlog`.
 
 ## When stuck
 
