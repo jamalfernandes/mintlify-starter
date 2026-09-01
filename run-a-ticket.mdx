@@ -12,6 +12,12 @@ Put it in the repo's project. Label it **`ready-for-agent`** and move it to **`T
   The runner prefers `Todo` and only falls back to `Backlog` when Todo is empty. So moving the one you want into `Todo` is how you choose, rather than letting it pick from everything.
 </Tip>
 
+Queue as many as you like. Every run ends by grooming the board, which promotes the next three unblocked tickets into `Todo` and **leaves everything else where you put it**. A queue you staged by hand survives the run.
+
+<Note>
+  Grooming used to also sweep everything past the first three back to `Backlog`, which silently emptied a staged queue at the end of a run — the moment nobody is watching the board. It now promotes only. Pass `--demote` if you want the old sweep.
+</Note>
+
 A good ticket says what done looks like in a way a machine can check. The ones that have worked best include a line like _"prove it fails: introduce a violation, watch it exit non-zero, remove it."_
 
 ## 2. Check the shell has the key
